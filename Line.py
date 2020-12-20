@@ -9,3 +9,8 @@ if checkLineInstallationOutput == '':
 else:
     print("LINE is installed")
 
+subprocess.run("adb logcat -c", shell=True)
+subprocess.run("adb shell am start -n jp.naver.line.android/.activity.SplashActivity", shell=True)
+checkLineRegistrationRequired = subprocess.Propen("adb logcat ActivityTaskManager:I *:S | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
+checkLineRegistrationRequiredResult = checkLineRegistrationRequired.stdout.read().decode("ascii")
+print(checkLineRegistrationRequiredResult)
