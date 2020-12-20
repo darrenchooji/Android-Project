@@ -1,16 +1,32 @@
-import subprocess
+import subprocess, time, sys
 
+# Checking if LINE is installed and installing the LINE APK if required
 checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
 checkLineInstallationOutput = checkLineInstallation.stdout.read().decode("ascii")
 if checkLineInstallationOutput == '':
     print("LINE is not installed. Installing LINE Now...")
     subprocess.run("adb install ~/Desktop/APKs/line-10-21-3.apk", shell=True)
-    print("LINE installlation finished")
+    print("LINE installation finished")
 else:
     print("LINE is installed")
 
+# Check if login to LINE is required
+registrationRequired = True
 subprocess.run("adb logcat -c", shell=True)
 subprocess.run("adb shell am start -n jp.naver.line.android/.activity.SplashActivity", shell=True)
-checkLineRegistrationRequired = subprocess.Propen("adb logcat ActivityTaskManager:I *:S | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
-checkLineRegistrationRequiredResult = checkLineRegistrationRequired.stdout.read().decode("ascii")
-print(checkLineRegistrationRequiredResult)
+time.sleep(15)
+checkLineRegistrationRequired = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep jp.naver.line.android/com.linecorp.registration.ui.RegistrationActivity", shell=True, stdout=subprocess.PIPE)
+checkLineRegistrationRequiredOutput = checkLineRegistrationRequired.stdout.read().decode("ascii")
+if checkLineRegistrationRequiredOutput == '':
+    verifyLineRegistrationNotRequired = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep jp.naver.line.android/.activity.main.MainActivity", shell=True, stdout=subprocess.PIPE)
+    verifyLineRegistrationNotRequiredOutput = verifyLineRegistrationNotRequired.stdout.read().decode("ascii")
+    if verifyLineRegistrationNotRequiredOutput != '':
+        registrationRequired = False
+        print("LINE login not required")
+    else:
+        print("Error detected. Exiting the program")
+        sys.exit()
+else:
+    registrationRequired = True
+    print("LINE login required")
+
