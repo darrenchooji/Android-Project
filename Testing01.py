@@ -1,5 +1,4 @@
-import subprocess, os
+import getpass
 
-url = input("Enter a URL: ")
-os.putenv("url", url)
-os.system("adb shell input text $url")
+password = getpass.getpass("Enter password: ")
+print(password)
