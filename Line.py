@@ -60,5 +60,6 @@ os.putenv("lineUrl", lineUrl)
 os.system("adb shell input text $url ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 160")
 time.sleep(5)
 
-#
-
+# Open the input URL using WebView in LINE
+adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="'''+lineUrl+'''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
+os.system(adbOpenUrlInWebViewCommand)
