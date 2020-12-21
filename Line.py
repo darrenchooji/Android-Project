@@ -1,4 +1,4 @@
-import subprocess, time, sys
+import subprocess, time, sys, os
 
 # Checking if LINE is installed and installing the LINE APK if required
 checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
@@ -30,3 +30,8 @@ else:
     registrationRequired = True
     print("LINE login required")
 
+# Running LINE login script (Only if registrationRequired=True)
+if registrationRequired == True:
+    phoneNumber = input("Enter phone number: ")
+    os.putenv("phoneNumber", phoneNumber)
+    os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineTesting.sh")
