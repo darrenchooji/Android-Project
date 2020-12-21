@@ -55,16 +55,10 @@ if registrationRequired == True:
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 160")
 
 # Prompt for URL input and send that input to Keep Memo (Self-Messaging)
-lineUrlInput = True
-while lineUrlInput == True:
-    lineUrl = input("Enter URL: ")
-    os.putenv("lineUrl", lineUrl)
-    os.system("adb shell input text $lineUrl ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 160")
-    isContinue = input("Do you want to continue (yes/no): ")
-    if isContinue == "yes":
-        lineUrlInput = True
-    elif isContinue == "no":
-        lineUrlInput = False
+lineUrl = input("Enter URL: ")
+os.putenv("lineUrl", lineUrl)
+os.system("adb shell input text $url ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 160")
+time.sleep(5)
 
 #
 
