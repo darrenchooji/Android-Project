@@ -14,7 +14,7 @@ else:
 registrationRequired = True
 subprocess.run("adb logcat -c", shell=True)
 subprocess.run("adb shell am start -n jp.naver.line.android/.activity.SplashActivity", shell=True)
-time.sleep(15)
+time.sleep(25)
 checkLineRegistrationRequired = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep jp.naver.line.android/com.linecorp.registration.ui.RegistrationActivity", shell=True, stdout=subprocess.PIPE)
 checkLineRegistrationRequiredOutput = checkLineRegistrationRequired.stdout.read().decode("ascii")
 if checkLineRegistrationRequiredOutput == '':
@@ -41,3 +41,30 @@ if registrationRequired == True:
     linePassword = getpass.getpass("Enter LINE Password: ")
     os.putenv("linePassword", linePassword)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartTwo.sh")
+    time.sleep(25)
+    print("LINE logged in")
+    # Enter Chats
+    os.system("adb shell input keyevent 61 ; adb shell input keyevent 160")
+    time.sleep(3)
+
+# Open LINE's Keep Memo
+print("Opening LINE's Keep Memo...")
+os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineOpenKeepMemo.sh")
+print("LINE's Keep Memo Opened")
+if registrationRequired == True:
+    os.system("adb shell input keyevent 61 ; adb shell input keyevent 160")
+
+# Prompt for URL input and send that input to Keep Memo (Self-Messaging)
+lineUrlInput = True
+while lineUrlInput == True:
+    lineUrl = input("Enter URL: ")
+    os.putenv("lineUrl", lineUrl)
+    os.system("adb shell input text $lineUrl ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 160")
+    isContinue = input("Do you want to continue (yes/no): ")
+    if isContinue == "yes":
+        lineUrlInput = True
+    elif isContinue == "no":
+        lineUrlInput = False
+
+#
+
