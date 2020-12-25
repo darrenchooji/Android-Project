@@ -31,6 +31,7 @@ else:
     registrationRequired = True
     print("LINE login required")
 
+# LINE login
 if registrationRequired == True:
     print("Logging in to LINE...")
     phoneNumber = input("Enter phone number: ")
