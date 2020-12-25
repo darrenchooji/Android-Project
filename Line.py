@@ -6,7 +6,7 @@ checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep jp.n
 checkLineInstallationOutput = checkLineInstallation.stdout.read().decode("ascii")
 if checkLineInstallationOutput == '':
     print("LINE is not installed. Installing LINE Now...")
-    subprocess.run("adb install ~/Desktop/APKs/line-10-21-3.apk", shell=True)
+    subprocess.run("adb install ~/Desktop/APKs/line*.apk", shell=True)
     print("LINE installation finished")
 else:
     print("LINE is already installed")
