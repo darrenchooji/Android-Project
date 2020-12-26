@@ -1,4 +1,4 @@
-import subprocess, time, sys, os, getpass
+import subprocess, time, sys, os
 from pathlib import Path
 
 # Checking if Telegram is installed and installing the Telegram APK if required
@@ -33,12 +33,46 @@ else:
 
 # Telegram login
 if registrationRequired == True:
-    print("Logging in to LINE...")
+    print("Logging in to Telegram...")
     phoneNumber = input("Enter phone number: ")
     os.putenv("phoneNumber", phoneNumber)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/TelegramShellScripts ; ./TelegramRegistrationPartOne.sh")
     telegramOtp = input("Enter Telegram OTP: ")
     os.putenv("telegramOtp", telegramOtp)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/TelegramShellScripts ; ./TelegramRegistrationPartTwo.sh")
+    print("Login to Telegram finished")
 
 # Open Telegram's Saved Messages
+adbOpenTelegramNavigationMenuCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramChatsPage.xml ; navMenu=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Open navigation menu"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramChatsPage.xml) ; adb shell input tap $navMenu'''
+subprocess.Popen(adbOpenTelegramNavigationMenuCommand, shell=True)
+time.sleep(5)
+adbOpenTelegramSavedMessagesCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramNavMenuPage.xml ; savedMessages=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Saved Messages"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramNavMenuPage.xml) ; adb shell input tap $savedMessages'''
+subprocess.Popen(adbOpenTelegramSavedMessagesCommand, shell=True)
+print("Opened Telegram's Saved Messages")
+
+# Reading a text file of URLs and sending those URLs on Telegram's Saved Messages
+home = str(Path.home())
+sendSavedMessagesUrlFile = open(home+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
+for telegramUrl in sendSavedMessagesUrlFile:
+    os.putenv("url", telegramUrl)
+    os.system("adb shell input text $url")
+    time.sleep(5)
+    os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
+    time.sleep(5)
+    os.system("adb shell input keyevent 21 ; adb shell input keyevent 21")
+
+sendSavedMessagesUrlFile.close()
+
+openWebviewUrlFile = open(home+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
+for telegramUrl in openWebviewUrlFile:
+    telegramUrl = telegramUrl.rstrip("\n")
+    formattedTelegramUrl = telegramUrl.replace(" ", "")
+    formattedTelegramUrl = telegramUrl.replace("/", r"\/")
+    print("Opening "+telegramUrl+" using WebView on Telegram...")
+    adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="'''+formattedTelegramUrl+'''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
+    os.system(adbOpenUrlInWebViewCommand)
+    print("Opened "+telegramUrl+" using WebView on Telegram")
+    time.sleep(45)
+    adbCloseWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
+
+openWebviewUrlFile.close()
