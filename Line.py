@@ -42,7 +42,7 @@ if registrationRequired == True:
     linePassword = getpass.getpass("Enter LINE Password: ")
     os.putenv("linePassword", linePassword)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartTwo.sh")
-    time.sleep(25)
+    time.sleep(30)
     print("LINE logged in")
     # Enter Chats
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 160")

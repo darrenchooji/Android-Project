@@ -40,3 +40,5 @@ if registrationRequired == True:
     telegramOtp = input("Enter Telegram OTP: ")
     os.putenv("telegramOtp", telegramOtp)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/TelegramShellScripts ; ./TelegramRegistrationPartTwo.sh")
+
+# Open Telegram's Saved Messages
