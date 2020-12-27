@@ -50,13 +50,15 @@ adbOpenTelegramSavedMessagesCommand = r'''adb pull $(adb shell uiautomator dump 
 subprocess.Popen(adbOpenTelegramSavedMessagesCommand, shell=True)
 print("Opened Telegram's Saved Messages")
 
+time.sleep(15)
+
 # Reading a text file of URLs and sending those URLs on Telegram's Saved Messages
 home = str(Path.home())
 sendSavedMessagesUrlFile = open(home+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
 for telegramUrl in sendSavedMessagesUrlFile:
     os.putenv("url", telegramUrl)
     os.system("adb shell input text $url")
-    time.sleep(5)
+    time.sleep(10)
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(5)
     os.system("adb shell input keyevent 21 ; adb shell input keyevent 21")
@@ -74,5 +76,7 @@ for telegramUrl in openWebviewUrlFile:
     print("Opened "+telegramUrl+" using WebView on Telegram")
     time.sleep(45)
     adbCloseWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
+    os.system(adbCloseWebViewCommand)
+    time.sleep(15)
 
 openWebviewUrlFile.close()
