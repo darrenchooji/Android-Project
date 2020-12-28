@@ -65,6 +65,7 @@ for telegramUrl in sendSavedMessagesUrlFile:
 
 sendSavedMessagesUrlFile.close()
 
+index = 0
 openWebviewUrlFile = open(home+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
 for telegramUrl in openWebviewUrlFile:
     telegramUrl = telegramUrl.rstrip("\n")
@@ -73,10 +74,20 @@ for telegramUrl in openWebviewUrlFile:
     print("Opening "+telegramUrl+" using WebView on Telegram...")
     adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="'''+formattedTelegramUrl+'''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
     os.system(adbOpenUrlInWebViewCommand)
+    # Checking if it is Chrome's First Run
+    if index==0:
+        time.sleep(25)
+        verifyChromeFirstActivity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
+        verifyChromeFirstActivityOutput = verifyChromeFirstActivity.stdout.read().decode("ascii")
+        if verifyChromeFirstActivityOutput != '':
+                os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
+                time.sleep(5)
+                os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
     print("Opened "+telegramUrl+" using WebView on Telegram")
     time.sleep(45)
     adbCloseWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
     os.system(adbCloseWebViewCommand)
     time.sleep(15)
-
+    index+=1
+   
 openWebviewUrlFile.close()
