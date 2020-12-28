@@ -1,5 +1,4 @@
 import subprocess, time, sys, os, getpass
-from pathlib import Path
 
 # Checking if LINE is installed and installing the LINE APK if required
 checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
@@ -55,8 +54,8 @@ time.sleep(5)
 print("LINE's Keep Memo Opened")
 
 # Reading a text file of URLs and sending those URLs on LINE's Keep Memo
-home = str(Path.home())
-sendKeepMemoUrlFile = open(home+"/Desktop/CSIT/AndroidAnomalyDetection/URLs/urls.txt", "r")
+currentWorkingDirectory = os.getcwd()
+sendKeepMemoUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
 for lineUrl in sendKeepMemoUrlFile:
     os.putenv("url", lineUrl)
     os.system("adb shell input text $url")
@@ -67,7 +66,7 @@ for lineUrl in sendKeepMemoUrlFile:
 
 sendKeepMemoUrlFile.close()
 
-openWebviewUrlFile = open(home+"/Desktop/CSIT/AndroidAnomalyDetection/URLs/urls.txt", "r")
+openWebviewUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
 # Open the URLs using WebView in LINE
 for lineUrl in openWebviewUrlFile:
     lineUrl = lineUrl.rstrip("\n")

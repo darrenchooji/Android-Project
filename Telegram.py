@@ -1,5 +1,4 @@
 import subprocess, time, sys, os
-from pathlib import Path
 
 # Checking if Telegram is installed and installing the Telegram APK if required
 checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep org.telegram.messenger", shell=True, stdout=subprocess.PIPE)
@@ -53,8 +52,8 @@ print("Opened Telegram's Saved Messages")
 time.sleep(15)
 
 # Reading a text file of URLs and sending those URLs on Telegram's Saved Messages
-home = str(Path.home())
-sendSavedMessagesUrlFile = open(home+"/Desktop/CSIT/AndroidAnomalyDetection/URLs/urls.txt", "r")
+currentWorkingDirectory = os.getcwd()
+sendSavedMessagesUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
 for telegramUrl in sendSavedMessagesUrlFile:
     os.putenv("url", telegramUrl)
     os.system("adb shell input text $url")
@@ -66,7 +65,7 @@ for telegramUrl in sendSavedMessagesUrlFile:
 sendSavedMessagesUrlFile.close()
 
 index = 0
-openWebviewUrlFile = open(home+"/Desktop/CSIT/AndroidAnomalyDetection/URLs/urls.txt", "r")
+openWebviewUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
 for telegramUrl in openWebviewUrlFile:
     telegramUrl = telegramUrl.rstrip("\n")
     formattedTelegramUrl = telegramUrl.replace(" ", "")
