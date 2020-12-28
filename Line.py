@@ -56,7 +56,7 @@ print("LINE's Keep Memo Opened")
 
 # Reading a text file of URLs and sending those URLs on LINE's Keep Memo
 home = str(Path.home())
-sendKeepMemoUrlFile = open(home+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
+sendKeepMemoUrlFile = open(home+"/Desktop/CSIT/AndroidAnomalyDetection/URLs/urls.txt", "r")
 for lineUrl in sendKeepMemoUrlFile:
     os.putenv("url", lineUrl)
     os.system("adb shell input text $url")
@@ -67,7 +67,7 @@ for lineUrl in sendKeepMemoUrlFile:
 
 sendKeepMemoUrlFile.close()
 
-openWebviewUrlFile = open(home+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
+openWebviewUrlFile = open(home+"/Desktop/CSIT/AndroidAnomalyDetection/URLs/urls.txt", "r")
 # Open the URLs using WebView in LINE
 for lineUrl in openWebviewUrlFile:
     lineUrl = lineUrl.rstrip("\n")
