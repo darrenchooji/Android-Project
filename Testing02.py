@@ -1,18 +1,15 @@
-from pathlib import Path
-import os, time, subprocess
+import os
+currentWorkingDirectory = os.getcwd()
+credentials = open(currentWorkingDirectory+"/Credentials/FacebookMessenger.txt", "r")
+for credentialsInfo in credentials:
+    credentialsInfoList = credentialsInfo.split(";")
+    email = credentialsInfoList[0]
+    password = credentialsInfoList[1]
+    username = credentialsInfoList[2]
 
-# Open Text File of URLs and sending them on LINE
-home = str(Path.home())
-urlFile = open(home+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
-for url in urlFile:
-    os.putenv("url", url)
-    os.system("adb shell input text $url")
-    time.sleep(5)
-    os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 160")
-    time.sleep(5)
-    os.system("adb shell input keyevent 21 ; adb shell input keyevent 21")
-urlFile.close()
-
+print(email)
+print(password)
+print(username)
 
 
 
