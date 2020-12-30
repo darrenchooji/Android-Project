@@ -58,41 +58,37 @@ os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineOpenKee
 time.sleep(5)
 print("LINE's Keep Memo Opened")
 
-# Reading a text file of URLs and sending those URLs on LINE's Keep Memo
+# Reading a text file of URLs and sending those URLs to own profile and open those URLs using WebView on LINE
 currentWorkingDirectory = os.getcwd()
-sendKeepMemoUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
-for lineUrl in sendKeepMemoUrlFile:
+urlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
+for lineUrl in urlFile:
     os.putenv("url", lineUrl)
     os.system("adb shell input text $url")
     time.sleep(5)
-    os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 160")
+    os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(5)
-    os.system("adb shell input keyevent 21 ; adb shell input keyevent 21")
-
-sendKeepMemoUrlFile.close()
-
-openWebviewUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
-# Open the URLs using WebView in LINE
-for lineUrl in openWebviewUrlFile:
     lineUrl = lineUrl.rstrip("\n")
-    formattedLineUrl = lineUrl.replace(" ", "")
-    formattedLineUrl = formattedLineUrl.replace("/", r"\/")
-    print("Opening "+lineUrl+" using WebView on LINE...")
-    adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' +formattedLineUrl+ '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
+    formattedLineUrl = lineUrl.replace("/", r"\/")
+    print("Opening " + lineUrl + " using WebView on LINE...")
+    adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formattedLineUrl + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
     os.system(adbOpenUrlInWebViewCommand)
-    print("Opened "+lineUrl+" using WebView on LINE")
+    print("Opened " + lineUrl + " using WebView on LINE")
     time.sleep(45)
     isBackInKeepMemoChat = False
     while not isBackInKeepMemoChat:
         subprocess.Popen("adb logcat -c", shell=True)
         subprocess.Popen("adb shell input keyevent 4", shell=True)
         time.sleep(10)
-        verifyInKeepMemoChat = subprocess.Popen("adb logcat -d ActivityManager:I *:S | grep Killing | grep com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService", shell=True, stdout=subprocess.PIPE)
+        verifyInKeepMemoChat = subprocess.Popen(
+            "adb logcat -d ActivityManager:I *:S | grep Killing | grep com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService",
+            shell=True, stdout=subprocess.PIPE)
         verifyInKeepMemoChatOutput = verifyInKeepMemoChat.stdout.read().decode("ascii")
         if verifyInKeepMemoChatOutput != "":
             isBackInKeepMemoChat = True
             print("Closing the current WebView, opening the following URL...")
         else:
             isBackInKeepMemoChat = False
+    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/LineKeepMemo.xml ; editmsg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /class="android.widget.EditText"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/LineKeepMemo.xml) ; adb shell input tap $editMsg''')
+    time.sleep(5)
 
-openWebviewUrlFile.close()
+urlFile.close()

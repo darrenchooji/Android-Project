@@ -55,7 +55,7 @@ print("Opened Telegram's Saved Messages")
 
 time.sleep(15)
 
-# Reading a text file of URLs and sending those URLs to own profile and open those URLs using WebView on Facebook Messenger
+# Reading a text file of URLs and sending those URLs to own profile and open those URLs using WebView on Telegram
 index=0
 currentWorkingDirectory = os.getcwd()
 urlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
