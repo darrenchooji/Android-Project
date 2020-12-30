@@ -40,7 +40,10 @@ if registrationRequired == True:
     os.system("cd ~/Desktop/AndroidAnomalyDetection/FacebookMessengerShellScripts ; ./FacebookMessengerRegistration.sh")
 
 # Open Facebook Messenger's Self-Messaging
-os.system("nmcli networking off")
+os.system("adb shell svc wifi disable")
+time.sleep(3)
+os.system("adb shell svc data disable")
+time.sleep(3)
 os.system("adb shell input keyevent KEYCODE_APP_SWITCH")
 time.sleep(15)
 os.system("adb shell input keyevent DEL")
@@ -49,10 +52,40 @@ os.system("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity")
 time.sleep(30)
 os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New Message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''')
 time.sleep(10)
-os.system("nmcli networking on")
+os.system("adb shell svc wifi enable")
+time.sleep(3)
+os.system("adb shell svc data enable")
+time.sleep(30)
+username = username.replace(" ", "%s")
+os.putenv("username", username)
+os.system("adb shell input text $username")
+time.sleep(5)
+os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
+time.sleep(25)
 
+# Reading a text file of URLs and sending those URLs to own profile on Facebook Messenger
+sendOwnProfileUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
+for messengerUrl in sendOwnProfileUrlFile:
+    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/SelfMessage.xml ; msg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aa"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/SelfMessage.xml) ; adb shell input tap $msg''')
+    time.sleep(5)
+    os.putenv("url", messengerUrl)
+    os.system("adb shell input $url")
+    time.sleep(10)
+    os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
+    time.sleep(5)
 
+sendOwnProfileUrlFile.close()
 
+openWebviewUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
+for messengerUrl in openWebviewUrlFile:
+    messengerUrl = messengerUrl.rstrip("\n")
+    formattedMessengerUrl = messengerUrl.replace("/", "\/")
+    print("Opening "+messengerUrl+" using WebView on Facebook Messenger...")
+    adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerOwnProfile.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="'''+formattedMessengerUrl+'''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerOwnProfile.xml) ; adb shell input tap $url'''
+    os.system(adbOpenUrlInWebViewCommand)
+    print("Opened "+messengerUrl+" using WebView on Facebook Messenger")
+    time.sleep(45)
+    adbCloseWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
+    time.sleep(15)
 
-
-
+openWebviewUrlFile.close()

@@ -68,7 +68,6 @@ index = 0
 openWebviewUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
 for telegramUrl in openWebviewUrlFile:
     telegramUrl = telegramUrl.rstrip("\n")
-    formattedTelegramUrl = telegramUrl.replace(" ", "")
     formattedTelegramUrl = telegramUrl.replace("/", r"\/")
     print("Opening "+telegramUrl+" using WebView on Telegram...")
     adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="'''+formattedTelegramUrl+'''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
