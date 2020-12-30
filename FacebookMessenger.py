@@ -1,4 +1,5 @@
-import subprocess, time, sys, os, getpass
+import subprocess, time, os
+from pathlib import Path
 
 # Checking if Facebook Messenger is installed and installing the APK if required
 checkFacebookMessengerInstallation = subprocess.Popen("adb shell pm list packages | grep com.facebook.orca", shell=True, stdout=subprocess.PIPE)
@@ -25,7 +26,8 @@ else:
     print("Facebook Messenger login not required")
 
 currentWorkingDirectory = os.getcwd()
-facebookMessengerCredentials = open(currentWorkingDirectory+"/Credentials/FacebookMessenger.txt", "r")
+home = str(Path.home())
+facebookMessengerCredentials = open(home+"/Desktop/Credentials/FacebookMessenger.txt", "r")
 for credentials in facebookMessengerCredentials:
     credentialsList = credentials.split(";")
     email = credentialsList[0]

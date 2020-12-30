@@ -1,4 +1,5 @@
 import subprocess, time, sys, os, getpass
+from pathlib import Path
 
 # Checking if LINE is installed and installing the LINE APK if required
 checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
@@ -32,14 +33,18 @@ else:
 
 # LINE login
 if registrationRequired == True:
+    home = str(Path.home())
+    lineCredentials = open(home + "/Desktop/Credentials/Line.txt", "r")
+    for credentials in lineCredentials:
+        credentialsList = credentials.split(";")
+        phoneNumber = credentialsList[0]
+        password = credentialsList[1]
     print("Logging in to LINE...")
-    phoneNumber = input("Enter phone number: ")
     os.putenv("phoneNumber", phoneNumber)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartOne.sh")
     lineOtp = input("Enter LINE OTP: ")
     os.putenv("lineOtp", lineOtp)
-    linePassword = getpass.getpass("Enter LINE Password: ")
-    os.putenv("linePassword", linePassword)
+    os.putenv("linePassword", password)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartTwo.sh")
     time.sleep(30)
     print("LINE logged in")

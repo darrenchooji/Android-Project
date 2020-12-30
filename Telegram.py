@@ -1,4 +1,5 @@
 import subprocess, time, sys, os
+from pathlib import Path
 
 # Checking if Telegram is installed and installing the Telegram APK if required
 checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep org.telegram.messenger", shell=True, stdout=subprocess.PIPE)
@@ -32,8 +33,11 @@ else:
 
 # Telegram login
 if registrationRequired == True:
-    print("Logging in to Telegram...")
-    phoneNumber = input("Enter phone number: ")
+    home = str(Path.home())
+    telegramCredentials = open(home + "/Desktop/Credentials/Telegram.txt", "r")
+    for credentials in telegramCredentials:
+        credentialsList = credentials.split(";")
+        phoneNumber = credentialsList[0]
     os.putenv("phoneNumber", phoneNumber)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/TelegramShellScripts ; ./TelegramRegistrationPartOne.sh")
     telegramOtp = input("Enter Telegram OTP: ")
@@ -51,41 +55,40 @@ print("Opened Telegram's Saved Messages")
 
 time.sleep(15)
 
-# Reading a text file of URLs and sending those URLs on Telegram's Saved Messages
+# Reading a text file of URLs and sending those URLs to own profile and open those URLs using WebView on Facebook Messenger
+index=0
 currentWorkingDirectory = os.getcwd()
-sendSavedMessagesUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
-for telegramUrl in sendSavedMessagesUrlFile:
+urlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
+for telegramUrl in urlFile:
     os.putenv("url", telegramUrl)
     os.system("adb shell input text $url")
     time.sleep(10)
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
-    time.sleep(5)
-    os.system("adb shell input keyevent 21 ; adb shell input keyevent 21")
-
-sendSavedMessagesUrlFile.close()
-
-index = 0
-openWebviewUrlFile = open(currentWorkingDirectory+"/URLs/urls.txt", "r")
-for telegramUrl in openWebviewUrlFile:
+    time.sleep(3)
+    os.system("adb shell input keyevent 4")
+    time.sleep(3)
     telegramUrl = telegramUrl.rstrip("\n")
     formattedTelegramUrl = telegramUrl.replace("/", r"\/")
     print("Opening "+telegramUrl+" using WebView on Telegram...")
-    adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="'''+formattedTelegramUrl+'''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
+    adbOpenUrlInWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formattedTelegramUrl + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
     os.system(adbOpenUrlInWebViewCommand)
     # Checking if it is Chrome's First Run
-    if index==0:
+    if index == 0:
         time.sleep(25)
-        verifyChromeFirstActivity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
+        verifyChromeFirstActivity = subprocess.Popen(
+            "adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity",
+            shell=True, stdout=subprocess.PIPE)
         verifyChromeFirstActivityOutput = verifyChromeFirstActivity.stdout.read().decode("ascii")
         if verifyChromeFirstActivityOutput != '':
-                os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
-                time.sleep(5)
-                os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
-    print("Opened "+telegramUrl+" using WebView on Telegram")
+            os.system(
+                "adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
+            time.sleep(5)
+            os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
+    print("Opened " + telegramUrl + " using WebView on Telegram")
     time.sleep(45)
     adbCloseWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
     os.system(adbCloseWebViewCommand)
     time.sleep(15)
-    index+=1
-   
-openWebviewUrlFile.close()
+    index += 1
+
+urlFile.close()
