@@ -88,7 +88,7 @@ for lineUrl in urlFile:
             print("Closing the current WebView, opening the following URL...")
         else:
             isBackInKeepMemoChat = False
-    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/LineKeepMemo.xml ; editmsg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /class="android.widget.EditText"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/LineKeepMemo.xml) ; adb shell input tap $editMsg''')
+    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/LineKeepMemo.xml ; editmsg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /class="android.widget.EditText"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/LineKeepMemo.xml) ; adb shell input tap $editmsg''')
     time.sleep(5)
 
 urlFile.close()
