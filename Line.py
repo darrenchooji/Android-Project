@@ -46,10 +46,10 @@ if registrationRequired == True:
     os.putenv("lineOtp", lineOtp)
     os.putenv("linePassword", password)
     os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartTwo.sh")
-    time.sleep(30)
+    time.sleep(40)
     print("LINE logged in")
     # Enter Chats
-    os.system("adb shell input keyevent 61 ; adb shell input keyevent 160")
+    os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(3)
 
 # Open LINE's Keep Memo
@@ -66,7 +66,9 @@ for lineUrl in urlFile:
     os.system("adb shell input text $url")
     time.sleep(5)
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
-    time.sleep(5)
+    time.sleep(3)
+    os.system("adb shell input keyevent 4")
+    time.sleep(3)
     lineUrl = lineUrl.rstrip("\n")
     formattedLineUrl = lineUrl.replace("/", r"\/")
     print("Opening " + lineUrl + " using WebView on LINE...")
@@ -85,7 +87,6 @@ for lineUrl in urlFile:
         verifyInKeepMemoChatOutput = verifyInKeepMemoChat.stdout.read().decode("ascii")
         if verifyInKeepMemoChatOutput != "":
             isBackInKeepMemoChat = True
-            print("Closing the current WebView, opening the following URL...")
         else:
             isBackInKeepMemoChat = False
     os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/LineKeepMemo.xml ; editmsg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /class="android.widget.EditText"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/LineKeepMemo.xml) ; adb shell input tap $editmsg''')
