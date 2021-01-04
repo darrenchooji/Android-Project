@@ -1,4 +1,4 @@
-import subprocess, time, sys, os
+import subprocess, time, os
 from pathlib import Path
 
 def line(website):
@@ -113,8 +113,7 @@ def telegram(website):
         os.putenv("telegramOtp", telegramOtp)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/TelegramShellScripts ; ./TelegramRegistrationPartTwo.sh")
         print("Login to Telegram finished")
-
-    telegramCredentials.close()
+        telegramCredentials.close()
 
     # Open Telegram's Saved Messages
     adbOpenTelegramNavigationMenuCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramChatsPage.xml ; navMenu=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Open navigation menu"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramChatsPage.xml) ; adb shell input tap $navMenu'''
@@ -137,7 +136,7 @@ def telegram(website):
     adbOpenUrlInWebviewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formattedTelegramUrl + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
     os.system(adbOpenUrlInWebviewCommand)
     time.sleep(20)
-    subprocess.run("adb logcat -c")
+    subprocess.run("adb logcat -c", shell=True)
     verifyChromeFirstActivity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
     if verifyChromeFirstActivity != '':
         os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
@@ -151,9 +150,11 @@ def telegram(website):
     os.system(adbCloseWebViewCommand)
     time.sleep(15)
 
+
 def facebookMessenger(website):
     # Checking if Facebook Messenger is installed and installing the APK if required
-    checkFacebookMessengerInstallation = subprocess.Popen("adb shell pm list packages | grep com.facebook.orca", shell=True, stdout=subprocess.PIPE)
+    checkFacebookMessengerInstallation = subprocess.Popen("adb shell pm list packages | grep com.facebook.orca",
+                                                          shell=True, stdout=subprocess.PIPE)
     checkFacebookMessengerInstallationOutput = checkFacebookMessengerInstallation.stdout.read().decode("ascii")
     if checkFacebookMessengerInstallationOutput == '':
         print("Facebook Messenger is not installed. Installing Facebook Messenger now...")
@@ -175,19 +176,22 @@ def facebookMessenger(website):
     else:
         registrationRequired = False
 
+    homePath = str(Path.home())
+    facebookMessengerCredentials = open(homePath + "/Desktop/Credentials/FacebookMessenger.txt", "r")
+    for credentials in facebookMessengerCredentials:
+        credentialsList = credentials.split(";")
+        email = credentialsList[0]
+        password = credentialsList[1]
+        username = credentialsList[2]
+
     if registrationRequired == True:
-        homePath = str(Path.home())
-        facebookMessengerCredentials = open(homePath + "/Desktop/Credentials/FacebookMessenger.txt", "r")
-        for credentials in facebookMessengerCredentials:
-            credentialsList = credentials.split(";")
-            email = credentialsList[0]
-            password = credentialsList[1]
-            username = credentialsList[2]
         print("Logging in to Facebook Messenger...")
         os.putenv("email", email)
         os.putenv("password", password)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/FacebookMessengerShellScripts ; ./FacebookMessengerRegistration.sh")
-        facebookMessengerCredentials.close()
+
+    facebookMessengerCredentials.close()
+    time.sleep(10)
 
     # Open Facebook Messenger's Self-Messaging
     os.system("adb shell svc wifi disable")
@@ -200,7 +204,8 @@ def facebookMessenger(website):
     time.sleep(15)
     os.system("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity")
     time.sleep(30)
-    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New Message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''')
+    os.system(
+        r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New Message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''')
     time.sleep(10)
     os.system("adb shell svc wifi enable")
     time.sleep(3)
@@ -214,7 +219,8 @@ def facebookMessenger(website):
     time.sleep(25)
 
     # Sending URL to own profile and opening that URL using WebView in Facebook Messenger
-    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/SelfMessage.xml ; msg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aa"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/SelfMessage.xml) ; adb shell input tap $msg''')
+    os.system(
+        r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/SelfMessage.xml ; msg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aa"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/SelfMessage.xml) ; adb shell input tap $msg''')
     time.sleep(5)
     os.putenv("url", website)
     os.system("adb shell input text $url")
@@ -235,7 +241,7 @@ def facebookMessenger(website):
     time.sleep(20)
 
 homePath = str(Path.home())
-urlFile = open(homePath+"/Desktop/AndroidAnomalyDetection/URL/urls.txt", "r")
+urlFile = open(homePath+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
 for urls in urlFile:
     urlList = urls.split(";")
     im = urlList[0]
