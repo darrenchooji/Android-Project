@@ -193,7 +193,6 @@ def facebookMessenger(website):
     facebookMessengerCredentials.close()
 
     # Open Facebook Messenger's Self-Messaging
-    time.sleep(15)
     os.system("adb shell svc wifi disable")
     time.sleep(3)
     os.system("adb shell svc data disable")
