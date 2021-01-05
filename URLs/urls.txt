@@ -1,3 +1,2 @@
-org.telegram.messenger;www.w3schools.com
 com.facebook.orca;http://www.google.com
 jp.naver.line.android;http://www.stackoverflow.com
