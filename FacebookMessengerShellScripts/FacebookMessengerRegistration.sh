@@ -1,3 +1,5 @@
+adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerLogin.xml ; email=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Phone Number or Email"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerLogin.xml) ; adb shell input tap $email
+sleep 3
 adb shell input text $email
 sleep 5
 adb shell input keyevent 61

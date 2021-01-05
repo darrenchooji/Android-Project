@@ -164,7 +164,7 @@ def facebookMessenger(website):
     # Check if login is required
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity", shell=True)
-    time.sleep(30)
+    time.sleep(45)
     checkFacebookMessengerRegistrationRequired = subprocess.Popen(
         "adb logcat -d ActivityTaskManager:I *:S | grep com.facebook.orca/com.facebook.messaging.accountlogin.AccountLoginActivity",
         shell=True, stdout=subprocess.PIPE)
