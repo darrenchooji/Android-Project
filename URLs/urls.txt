@@ -1,2 +1,1 @@
-com.facebook.orca;http://www.google.com
-jp.naver.line.android;http://www.stackoverflow.com
+com.facebook.orca;www.w3schools.com

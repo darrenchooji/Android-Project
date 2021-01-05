@@ -164,7 +164,7 @@ def facebookMessenger(website):
     # Check if login is required
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity", shell=True)
-    time.sleep(45)
+    time.sleep(30)
     checkFacebookMessengerRegistrationRequired = subprocess.Popen(
         "adb logcat -d ActivityTaskManager:I *:S | grep com.facebook.orca/com.facebook.messaging.accountlogin.AccountLoginActivity",
         shell=True, stdout=subprocess.PIPE)
@@ -191,9 +191,9 @@ def facebookMessenger(website):
         os.system("cd ~/Desktop/AndroidAnomalyDetection/FacebookMessengerShellScripts ; ./FacebookMessengerRegistration.sh")
 
     facebookMessengerCredentials.close()
-    time.sleep(10)
 
     # Open Facebook Messenger's Self-Messaging
+    time.sleep(15)
     os.system("adb shell svc wifi disable")
     time.sleep(3)
     os.system("adb shell svc data disable")
@@ -203,7 +203,7 @@ def facebookMessenger(website):
     os.system("adb shell input keyevent 20 ; adb shell input keyevent DEL")
     time.sleep(15)
     os.system("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity")
-    time.sleep(30)
+    time.sleep(25)
     os.system(
         r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New Message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''')
     time.sleep(10)
