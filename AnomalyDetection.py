@@ -2,7 +2,7 @@ import subprocess, time, os
 from pathlib import Path
 
 def anomalychecking():
-    adb_check_webpage_availibility_command=r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OpenedWebviewPage.xml ; webpageavailability=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Webpage not available"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OpenedWebviewPage.xml) ; echo $webviewavailability'''
+    adb_check_webpage_availibility_command=r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OpenedWebviewPage.xml ; webpageavailability=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Webpage not available"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OpenedWebviewPage.xml) ; echo $webpageavailability'''
     check_webpage_availability = subprocess.Popen(adb_check_webpage_availibility_command, shell=True, stdout=subprocess.PIPE)
     check_webpage_availability_output = check_webpage_availability.stdout.read().decode("ascii")
     if check_webpage_availability_output == '':
