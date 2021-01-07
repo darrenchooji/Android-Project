@@ -2,10 +2,15 @@ import subprocess, time, os
 from pathlib import Path
 
 def anomalychecking():
-    adb_check_webpage_availibility_command=r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OpenedWebviewPage.xml ; webpageavailability=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Webpage not available"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OpenedWebviewPage.xml) ; echo $webpageavailability'''
-    check_webpage_availability = subprocess.Popen(adb_check_webpage_availibility_command, shell=True, stdout=subprocess.PIPE)
-    check_webpage_availability_output = check_webpage_availability.stdout.read().decode("ascii")
-    if check_webpage_availability_output == '':
+    adb_check_webpage_availibility_command = r'''webpageavailability=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Webpage not available"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OpenedWebviewPage.xml) ; echo $webpageavailability'''
+    subprocess.run(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OpenedWebviewPage.xml''',
+                   shell=True)
+    get_webpage_availability = subprocess.Popen(adb_check_webpage_availibility_command, shell=True,
+                                                stdout=subprocess.PIPE)
+    time.sleep(3)
+    get_webpage_availability_output = get_webpage_availability.stdout.read().decode("ascii")
+    get_webpage_availability_output = get_webpage_availability_output.rstrip("\n")
+    if get_webpage_availability_output == '':
         print("Webpage can be shown")
     else:
         print("Webpage cannot be shown")
@@ -75,7 +80,7 @@ def line(website):
     print("Opened "+website+" using WebView on LINE")
     time.sleep(45)
     anomalychecking()
-    time.sleep(10)
+    time.sleep(20)
     is_back_in_keep_memo_chat = False
     while not is_back_in_keep_memo_chat:
         subprocess.Popen("adb logcat -c", shell=True)
@@ -114,7 +119,7 @@ def telegram(website):
     # Telegram login
     if registration_required == True:
         home_path = str(Path.home())
-        telegram_credentials = open(homePath+"/Desktop/Credentials/Telegram.txt", "r")
+        telegram_credentials = open(home_path+"/Desktop/Credentials/Telegram.txt", "r")
         for credentials in telegram_credentials:
             credentials_list = credentials.split(";")
             phone_number = credentials_list[0]
