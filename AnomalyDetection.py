@@ -1,10 +1,19 @@
 import subprocess, time, os
 from pathlib import Path
 
+def anomalychecking():
+    adb_check_webpage_availibility_command=r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OpenedWebviewPage.xml ; webpageavailability=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Webpage not available"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OpenedWebviewPage.xml) ; echo $webviewavailability'''
+    check_webpage_availability = subprocess.Popen(adb_check_webpage_availibility_command, shell=True)
+    check_webpage_availability_output = check_webpage_availability.stdout.read().decode("ascii")
+    if check_webpage_availability_output == '':
+        print("Webpage can be shown")
+    else:
+        print("Webpage cannot be shown")
+
 def line(website):
-    checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
-    checkLineInstallationOutput = checkLineInstallation.stdout.read().decode("ascii")
-    if checkLineInstallationOutput == '':
+    check_line_installation = subprocess.Popen("adb shell pm list packages | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
+    check_line_installation_output = check_line_installation.stdout.read().decode("ascii")
+    if check_line_installation_output == '':
         print("LINE is not installed. Installing LINE now...")
         subprocess.run("adb install ~/Desktop/APKs/line*.apk", shell=True)
         print("LINE installation finished")
@@ -13,32 +22,32 @@ def line(website):
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n jp.naver.line.android/.activity.SplashActivity", shell=True)
     time.sleep(35)
-    checkLineRegistrationRequired = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep jp.naver.line.android/com.linecorp.registration.ui.RegistrationActivity", shell=True, stdout=subprocess.PIPE)
-    checkLineRegistrationRequiredOutput = checkLineRegistrationRequired.stdout.read().decode("ascii")
-    if checkLineRegistrationRequiredOutput == '':
-        registrationRequired = False
+    check_line_registration_required = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep jp.naver.line.android/com.linecorp.registration.ui.RegistrationActivity", shell=True, stdout=subprocess.PIPE)
+    check_line_registration_required_output = check_line_registration_required.stdout.read().decode("ascii")
+    if check_line_registration_required_output == '':
+        registration_required = False
     else:
-        registrationRequired = True
+        registration_required = True
         print("LINE login required")
 
-    if registrationRequired == True:
-        homePath = str(Path.home())
-        lineCredentials = open(homePath+"/Desktop/Credentials/Line.txt", "r")
-        for credentials in lineCredentials:
-            credentialsList = credentials.split(";")
-            phoneNumber = credentialsList[0]
-            password = credentialsList[1]
+    if registration_required == True:
+        home_path = str(Path.home())
+        line_credentials = open(home_path+"/Desktop/Credentials/Line.txt", "r")
+        for credentials in line_credentials:
+            credentials_list = credentials.split(";")
+            phone_number = credentials_list[0]
+            password = credentials_list[1]
         print("Logging in to LINE...")
-        os.putenv("phoneNumber", phoneNumber)
+        os.putenv("phone_number", phone_number)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartOne.sh")
-        lineOtp = input("Enter LINE OTP: ")
-        os.putenv("lineOtp", lineOtp)
+        line_otp = input("Enter LINE OTP: ")
+        os.putenv("line_otp", line_otp)
         os.putenv("linePassword", password)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartTwo.sh")
         time.sleep(40)
         print("LINE logged in")
 
-        lineCredentials.close()
+        line_credentials.close()
 
         # Enter Chats
         os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
@@ -59,31 +68,33 @@ def line(website):
     os.system("adb shell input keyevent 4")
     time.sleep(3)
     website = website.rstrip("\n")
-    formattedLineUrl = website.replace("/", r"\/")
+    formatted_line_url = website.replace("/", r"\/")
     print("Opening "+website+" using WebView on LINE...")
-    adbOpenUrlInWebviewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formattedLineUrl + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
-    os.system(adbOpenUrlInWebviewCommand)
+    adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_line_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
+    os.system(adb_open_url_in_webview_command)
     print("Opened "+website+" using WebView on LINE")
     time.sleep(45)
-    isBackInKeepMemoChat = False
-    while not isBackInKeepMemoChat:
+    anomalychecking()
+    time.sleep(10)
+    is_back_in_keep_memo_chat = False
+    while not is_back_in_keep_memo_chat:
         subprocess.Popen("adb logcat -c", shell=True)
         subprocess.Popen("adb shell input keyevent 4", shell=True)
         time.sleep(10)
-        verifyInKeepMemoChat = subprocess.Popen(
+        verify_in_keep_memo_chat = subprocess.Popen(
             "adb logcat -d ActivityManager:I *:S | grep Killing | grep com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService",
             shell=True, stdout=subprocess.PIPE)
-        verifyInKeepMemoChatOutput = verifyInKeepMemoChat.stdout.read().decode("ascii")
-        if verifyInKeepMemoChatOutput != "":
-            isBackInKeepMemoChat = True
+        verify_in_keep_memo_chat_output = verify_in_keep_memo_chat.stdout.read().decode("ascii")
+        if verify_in_keep_memo_chat_output != "":
+            is_back_in_keep_memo_chat = True
         else:
-            isBackInKeepMemoChat = False
+            is_back_in_keep_memo_chat = False
 
 def telegram(website):
     # Checking if Telegram is installed and installing the Telegram APK if required
-    checkLineInstallation = subprocess.Popen("adb shell pm list packages | grep org.telegram.messenger", shell=True, stdout=subprocess.PIPE)
-    checkLineInstallationOutput = checkLineInstallation.stdout.read().decode("ascii")
-    if checkLineInstallationOutput == '':
+    check_telegram_installation = subprocess.Popen("adb shell pm list packages | grep org.telegram.messenger", shell=True, stdout=subprocess.PIPE)
+    check_telegram_installation_output = check_telegram_installation.stdout.read().decode("ascii")
+    if check_telegram_installation_output == '':
         print("Telegram is not installed. Installing Telegram Now...")
         subprocess.run("adb install ~/Desktop/APKs/telegram*.apk", shell=True)
         print("Telegram installation finished")
@@ -92,35 +103,35 @@ def telegram(website):
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n org.telegram.messenger/org.telegram.ui.LaunchActivity", shell=True)
     time.sleep(35)
-    checkLineRegistrationRequired = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep org.telegram.messenger/org.telegram.ui.IntroActivity | grep Displayed", shell=True, stdout=subprocess.PIPE)
-    checkLineRegistrationRequiredOutput = checkLineRegistrationRequired.stdout.read().decode("ascii")
-    if checkLineRegistrationRequiredOutput == '':
-        registrationRequired = False
+    check_telegram_registration_required = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep org.telegram.messenger/org.telegram.ui.IntroActivity | grep Displayed", shell=True, stdout=subprocess.PIPE)
+    check_telegram_registration_required_output = check_telegram_registration_required.stdout.read().decode("ascii")
+    if check_telegram_registration_required_output == '':
+        registration_required = False
     else:
-        registrationRequired = True
+        registration_required = True
         print("Telegram login required")
 
     # Telegram login
-    if registrationRequired == True:
-        homePath = str(Path.home())
-        telegramCredentials = open(homePath+"/Desktop/Credentials/Telegram.txt", "r")
-        for credentials in telegramCredentials:
-            credentialsList = credentials.split(";")
-            phoneNumber = credentialsList[0]
-        os.putenv("phoneNumber", phoneNumber)
+    if registration_required == True:
+        home_path = str(Path.home())
+        telegram_credentials = open(homePath+"/Desktop/Credentials/Telegram.txt", "r")
+        for credentials in telegram_credentials:
+            credentials_list = credentials.split(";")
+            phone_number = credentials_list[0]
+        os.putenv("phoneNumber", phone_number)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/TelegramShellScripts ; ./TelegramRegistrationPartOne.sh")
-        telegramOtp = input("Enter Telegram OTP: ")
-        os.putenv("telegramOtp", telegramOtp)
+        telegram_otp = input("Enter Telegram OTP: ")
+        os.putenv("telegramOtp", telegram_otp)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/TelegramShellScripts ; ./TelegramRegistrationPartTwo.sh")
         print("Login to Telegram finished")
-        telegramCredentials.close()
+        telegram_credentials.close()
 
     # Open Telegram's Saved Messages
-    adbOpenTelegramNavigationMenuCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramChatsPage.xml ; navMenu=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Open navigation menu"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramChatsPage.xml) ; adb shell input tap $navMenu'''
-    subprocess.Popen(adbOpenTelegramNavigationMenuCommand, shell=True)
+    adb_open_telegram_navigation_menu_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramChatsPage.xml ; navMenu=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Open navigation menu"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramChatsPage.xml) ; adb shell input tap $navMenu'''
+    subprocess.Popen(adb_open_telegram_navigation_menu_command, shell=True)
     time.sleep(5)
-    adbOpenTelegramSavedMessagesCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramNavMenuPage.xml ; savedMessages=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Saved Messages"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramNavMenuPage.xml) ; adb shell input tap $savedMessages'''
-    subprocess.Popen(adbOpenTelegramSavedMessagesCommand, shell=True)
+    adb_open_telegram_saved_messages_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramNavMenuPage.xml ; savedMessages=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Saved Messages"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramNavMenuPage.xml) ; adb shell input tap $savedMessages'''
+    subprocess.Popen(adb_open_telegram_saved_messages_command, shell=True)
     print("Opened Telegram's Saved Messages")
     time.sleep(15)
     os.putenv("url", website)
@@ -131,14 +142,14 @@ def telegram(website):
     os.system("adb shell input keyevent 4")
     time.sleep(3)
     website = website.rstrip("\n")
-    formattedTelegramUrl = website.replace("/", r"\/")
+    formatted_telegram_url = website.replace("/", r"\/")
     print("Opening "+website+" using WebView on Telegram...")
-    adbOpenUrlInWebviewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formattedTelegramUrl + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
-    os.system(adbOpenUrlInWebviewCommand)
+    adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_telegram_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
+    os.system(adb_open_url_in_webview_command)
     time.sleep(20)
     subprocess.run("adb logcat -c", shell=True)
-    verifyChromeFirstActivity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
-    if verifyChromeFirstActivity != '':
+    verify_chrome_first_activity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
+    if verify_chrome_first_activity != '':
         os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
         time.sleep(5)
         os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
@@ -146,17 +157,19 @@ def telegram(website):
         time.sleep(45)
     else:
         time.sleep(25)
-    adbCloseWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
-    os.system(adbCloseWebViewCommand)
+    anomalychecking()
+    time.sleep(10)
+    adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
+    os.system(adb_close_web_view_command)
     time.sleep(15)
 
 
-def facebookMessenger(website):
+def facebookmessenger(website):
     # Checking if Facebook Messenger is installed and installing the APK if required
-    checkFacebookMessengerInstallation = subprocess.Popen("adb shell pm list packages | grep com.facebook.orca",
+    check_facebook_messenger_installation = subprocess.Popen("adb shell pm list packages | grep com.facebook.orca",
                                                           shell=True, stdout=subprocess.PIPE)
-    checkFacebookMessengerInstallationOutput = checkFacebookMessengerInstallation.stdout.read().decode("ascii")
-    if checkFacebookMessengerInstallationOutput == '':
+    check_facebook_messenger_installation_output = check_facebook_messenger_installation.stdout.read().decode("ascii")
+    if check_facebook_messenger_installation_output == '':
         print("Facebook Messenger is not installed. Installing Facebook Messenger now...")
         subprocess.run("adb install ~/Desktop/APKs/messenger*.apk", shell=True)
         print("Facebook Messenger installation finished")
@@ -165,32 +178,32 @@ def facebookMessenger(website):
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity", shell=True)
     time.sleep(30)
-    checkFacebookMessengerRegistrationRequired = subprocess.Popen(
+    check_facebook_messenger_registration_required = subprocess.Popen(
         "adb logcat -d ActivityTaskManager:I *:S | grep com.facebook.orca/com.facebook.messaging.accountlogin.AccountLoginActivity",
         shell=True, stdout=subprocess.PIPE)
-    checkFacebookMessengerRegistrationRequiredOutput = checkFacebookMessengerRegistrationRequired.stdout.read().decode(
+    check_facebook_messenger_registration_required_output = check_facebook_messenger_registration_required.stdout.read().decode(
         "ascii")
-    if checkFacebookMessengerRegistrationRequiredOutput != '':
-        registrationRequired = True
+    if check_facebook_messenger_registration_required_output != '':
+        registration_required = True
         print("Facebook Messenger login required")
     else:
-        registrationRequired = False
+        registration_required = False
 
-    homePath = str(Path.home())
-    facebookMessengerCredentials = open(homePath + "/Desktop/Credentials/FacebookMessenger.txt", "r")
-    for credentials in facebookMessengerCredentials:
-        credentialsList = credentials.split(";")
-        email = credentialsList[0]
-        password = credentialsList[1]
-        username = credentialsList[2]
+    home_path = str(Path.home())
+    facebook_messenger_credentials = open(home_path + "/Desktop/Credentials/FacebookMessenger.txt", "r")
+    for credentials in facebook_messenger_credentials:
+        credentials_list = credentials.split(";")
+        email = credentials_list[0]
+        password = credentials_list[1]
+        username = credentials_list[2]
 
-    if registrationRequired == True:
+    if registration_required == True:
         print("Logging in to Facebook Messenger...")
         os.putenv("email", email)
         os.putenv("password", password)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/FacebookMessengerShellScripts ; ./FacebookMessengerRegistration.sh")
 
-    facebookMessengerCredentials.close()
+    facebook_messenger_credentials.close()
 
     # Open Facebook Messenger's Self-Messaging
     os.system("adb shell svc wifi disable")
@@ -229,31 +242,33 @@ def facebookMessenger(website):
     os.system("adb shell input keyevent 4")
     time.sleep(5)
     website = website.rstrip("\n")
-    formattedMessengerUrl = website.replace("/", "\/")
+    formatted_messenger_url = website.replace("/", "\/")
     print("Opening " + website + " using WebView on Facebook Messenger...")
-    adbOpenUrlInWebviewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerOwnProfile.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formattedMessengerUrl + '''"[^>]*content-desc=""[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerOwnProfile.xml) ; adb shell input tap $url'''
-    os.system(adbOpenUrlInWebviewCommand)
+    adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerOwnProfile.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_messenger_url + '''"[^>]*content-desc=""[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerOwnProfile.xml) ; adb shell input tap $url'''
+    os.system(adb_open_url_in_webview_command)
     print("Opened " + website + " using WebView on Facebook Messenger")
     time.sleep(45)
-    adbCloseWebViewCommand = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
-    os.system(adbCloseWebViewCommand)
+    anomalychecking()
+    time.sleep(10)
+    adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
+    os.system(adb_close_web_view_command)
     time.sleep(20)
 
-homePath = str(Path.home())
-urlFile = open(homePath+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
-for urls in urlFile:
-    urlList = urls.split(";")
-    im = urlList[0]
-    website = urlList[1]
+home_path = str(Path.home())
+url_file = open(home_path+"/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
+for urls in url_file:
+    url_list = urls.split(";")
+    im = url_list[0]
+    website = url_list[1]
     if im == "jp.naver.line.android":
         line(website)
     elif im == "org.telegram.messenger":
         telegram(website)
     elif im == "com.facebook.orca":
-        facebookMessenger(website)
+        facebookmessenger(website)
     time.sleep(5)
     os.system("adb shell input keyevent KEYCODE_APP_SWITCH")
     time.sleep(15)
     os.system("adb shell input keyevent 20 ; adb shell input keyevent DEL")
 
-urlFile.close()
+url_file.close()
