@@ -1,3 +1,2 @@
-jp.naver.line.android;http://www.apple.com
-com.facebook.orca;http://www.apple.com
 org.telegram.messenger;http://www.apple.com
+org.telegram.messenger;http://www.samsung.com

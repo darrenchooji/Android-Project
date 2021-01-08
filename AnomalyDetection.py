@@ -70,8 +70,6 @@ def line(website):
     time.sleep(5)
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(3)
-    os.system("adb shell input keyevent 4")
-    time.sleep(3)
     website = website.rstrip("\n")
     formatted_line_url = website.replace("/", r"\/")
     print("Opening "+website+" using WebView on LINE...")
@@ -107,7 +105,7 @@ def telegram(website):
     # Check if login is required
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n org.telegram.messenger/org.telegram.ui.LaunchActivity", shell=True)
-    time.sleep(35)
+    time.sleep(15)
     check_telegram_registration_required = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep org.telegram.messenger/org.telegram.ui.IntroActivity | grep Displayed", shell=True, stdout=subprocess.PIPE)
     check_telegram_registration_required_output = check_telegram_registration_required.stdout.read().decode("ascii")
     if check_telegram_registration_required_output == '':
@@ -138,35 +136,34 @@ def telegram(website):
     adb_open_telegram_saved_messages_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramNavMenuPage.xml ; savedMessages=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Saved Messages"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramNavMenuPage.xml) ; adb shell input tap $savedMessages'''
     subprocess.Popen(adb_open_telegram_saved_messages_command, shell=True)
     print("Opened Telegram's Saved Messages")
-    time.sleep(15)
+    time.sleep(3)
     os.putenv("url", website)
     os.system("adb shell input text $url")
-    time.sleep(10)
-    os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(3)
-    os.system("adb shell input keyevent 4")
+    os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(3)
     website = website.rstrip("\n")
     formatted_telegram_url = website.replace("/", r"\/")
     print("Opening "+website+" using WebView on Telegram...")
     adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_telegram_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
     os.system(adb_open_url_in_webview_command)
-    time.sleep(20)
+    time.sleep(10)
     subprocess.run("adb logcat -c", shell=True)
     verify_chrome_first_activity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
-    if verify_chrome_first_activity != '':
+    verify_chrome_first_activity_output = verify_chrome_first_activity.stdout.read().decode("ascii")
+    if verify_chrome_first_activity_output != '':
         os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
-        time.sleep(5)
+        time.sleep(3)
         os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
         print("Opened "+website+" using WebView on Telegram")
-        time.sleep(45)
+        time.sleep(10)
     else:
-        time.sleep(25)
+        time.sleep(5)
     anomalychecking()
     time.sleep(10)
     adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
     os.system(adb_close_web_view_command)
-    time.sleep(15)
+    time.sleep(3)
 
 
 def facebookmessenger(website):
@@ -217,7 +214,7 @@ def facebookmessenger(website):
     time.sleep(3)
     os.system("adb shell input keyevent KEYCODE_APP_SWITCH")
     time.sleep(15)
-    os.system("adb shell input keyevent 20 ; adb shell input keyevent DEL")
+    os.system("adb shell input keyevent 20 ; adb shell input keyevent 20 ; adb shell input keyevent 66")
     time.sleep(15)
     os.system("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity")
     time.sleep(25)
@@ -271,9 +268,10 @@ for urls in url_file:
         telegram(website)
     elif im == "com.facebook.orca":
         facebookmessenger(website)
-    time.sleep(5)
+    time.sleep(3)
     os.system("adb shell input keyevent KEYCODE_APP_SWITCH")
-    time.sleep(15)
-    os.system("adb shell input keyevent 20 ; adb shell input keyevent DEL")
+    time.sleep(3)
+    os.system("adb shell input keyevent 20 ; adb shell input keyevent 20 ; adb shell input keyevent 66")
+    time.sleep(5)
 
 url_file.close()
