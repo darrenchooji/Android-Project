@@ -26,7 +26,7 @@ def line(website):
     # Check if login is required
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n jp.naver.line.android/.activity.SplashActivity", shell=True)
-    time.sleep(35)
+    time.sleep(10)
     check_line_registration_required = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep jp.naver.line.android/com.linecorp.registration.ui.RegistrationActivity", shell=True, stdout=subprocess.PIPE)
     check_line_registration_required_output = check_line_registration_required.stdout.read().decode("ascii")
     if check_line_registration_required_output == '':
@@ -47,7 +47,7 @@ def line(website):
         os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartOne.sh")
         line_otp = input("Enter LINE OTP: ")
         os.putenv("line_otp", line_otp)
-        os.putenv("linePassword", password)
+        os.putenv("line_password", password)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/LineShellScripts ; ./LineRegistrationPartTwo.sh")
         time.sleep(40)
         print("LINE logged in")

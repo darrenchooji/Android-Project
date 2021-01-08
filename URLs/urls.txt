@@ -1,4 +1,3 @@
 jp.naver.line.android;http://www.apple.com
-jp.naver.line.android;http://www.darrenchooji.com
-com.facebook.orca;www.darrenchooji.com
 com.facebook.orca;http://www.apple.com
+org.telegram.messenger;http://www.apple.com
