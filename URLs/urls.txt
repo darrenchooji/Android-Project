@@ -1,2 +1,2 @@
-org.telegram.messenger;http://www.apple.com
-org.telegram.messenger;http://www.samsung.com
+com.facebook.orca;http://www.samsung.com
+com.facebook.orca;http://www.tesla.com
