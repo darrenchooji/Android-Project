@@ -1,19 +1,35 @@
 import subprocess, time, os
 from pathlib import Path
 
-def anomalychecking():
-    adb_check_webpage_availibility_command = r'''webpageavailability=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Webpage not available"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OpenedWebviewPage.xml) ; echo $webpageavailability'''
-    subprocess.run(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OpenedWebviewPage.xml''',
-                   shell=True)
-    get_webpage_availability = subprocess.Popen(adb_check_webpage_availibility_command, shell=True,
-                                                stdout=subprocess.PIPE)
-    time.sleep(3)
-    get_webpage_availability_output = get_webpage_availability.stdout.read().decode("ascii")
-    get_webpage_availability_output = get_webpage_availability_output.rstrip("\n")
-    if get_webpage_availability_output == '':
-        print("Webpage can be shown")
+def line_anomaly_checking():
+    adb_verify_webview_crash_command = r'''adb logcat -d ActivityManager:I *:S | grep "Scheduling restart of crashed service jp.naver.line.android/org.chromium.content.app.SandboxedProcessService"'''
+    get_verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
+    get_verify_webview_crash_output = get_verify_webview_crash.stdout.read().decode("ascii")
+    if get_verify_webview_crash_output != '':
+        return True
     else:
-        print("Webpage cannot be shown")
+        return False
+
+def telegram_anomaly_checking():
+    adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aw Snap!"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; echo $coords'''
+    subprocess.run(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml''', shell=True)
+    get_verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
+    time.sleep(3)
+    get_verify_webview_crash_output = get_verify_webview_crash.stdout.read().decode("ascii")
+    get_verify_webview_crash_output = get_verify_webview_crash_output.rstrip("\n")
+    if get_verify_webview_crash_output != '':
+        return True
+    else:
+        return False
+
+def facebook_messenger_anomaly_checking():
+    adb_verify_webview_crash_command = r'''adb logcat -d ActivityManager:I *:S | grep "Scheduling restart of crashed service com.facebook.orca/org.chromium.content.app.SandboxedProcessService"'''
+    get_verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
+    get_verify_webview_crash_output = get_verify_webview_crash.stdout.read().decode("ascii")
+    if get_verify_webview_crash_output != '':
+        return True
+    else:
+        return False
 
 def line(website):
     check_line_installation = subprocess.Popen("adb shell pm list packages | grep jp.naver.line.android", shell=True, stdout=subprocess.PIPE)
@@ -65,6 +81,7 @@ def line(website):
     print("LINE's Keep Memo Opened")
 
     # Sending URL to LINE's Keep Memo and opening that URL using LINE's WebView
+    os.system("adb logcat -c")
     os.putenv("url", website)
     os.system("adb shell input text $url")
     time.sleep(5)
@@ -77,21 +94,24 @@ def line(website):
     os.system(adb_open_url_in_webview_command)
     print("Opened "+website+" using WebView on LINE")
     time.sleep(45)
-    anomalychecking()
-    time.sleep(20)
-    is_back_in_keep_memo_chat = False
-    while not is_back_in_keep_memo_chat:
-        subprocess.Popen("adb logcat -c", shell=True)
-        subprocess.Popen("adb shell input keyevent 4", shell=True)
-        time.sleep(10)
-        verify_in_keep_memo_chat = subprocess.Popen(
-            "adb logcat -d ActivityManager:I *:S | grep Killing | grep com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService",
-            shell=True, stdout=subprocess.PIPE)
-        verify_in_keep_memo_chat_output = verify_in_keep_memo_chat.stdout.read().decode("ascii")
-        if verify_in_keep_memo_chat_output != "":
-            is_back_in_keep_memo_chat = True
-        else:
-            is_back_in_keep_memo_chat = False
+
+    anomaly = line_anomaly_checking()
+
+    # Exit Line's WebView
+    if not anomaly:
+        is_back_in_keep_memo_chat = False
+        while not is_back_in_keep_memo_chat:
+            subprocess.Popen("adb logcat -c", shell=True)
+            subprocess.Popen("adb shell input keyevent 4", shell=True)
+            time.sleep(10)
+            verify_in_keep_memo_chat = subprocess.Popen(
+                "adb logcat -d ActivityManager:I *:S | grep Killing | grep com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService",
+                shell=True, stdout=subprocess.PIPE)
+            verify_in_keep_memo_chat_output = verify_in_keep_memo_chat.stdout.read().decode("ascii")
+            if verify_in_keep_memo_chat_output != "":
+                is_back_in_keep_memo_chat = True
+            else:
+                is_back_in_keep_memo_chat = False
 
 def telegram(website):
     # Checking if Telegram is installed and installing the Telegram APK if required
@@ -159,7 +179,9 @@ def telegram(website):
         time.sleep(10)
     else:
         time.sleep(5)
-    anomalychecking()
+
+    anomaly = telegram_anomaly_checking()
+
     time.sleep(10)
     adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
     os.system(adb_close_web_view_command)
@@ -244,10 +266,12 @@ def facebookmessenger(website):
     os.system(adb_open_url_in_webview_command)
     print("Opened " + website + " using WebView on Facebook Messenger")
     time.sleep(45)
-    anomalychecking()
+
+    anomaly = facebook_messenger_anomaly_checking()
     time.sleep(10)
-    adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
-    os.system(adb_close_web_view_command)
+    if not anomaly:
+        adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
+        os.system(adb_close_web_view_command)
     time.sleep(5)
 
 home_path = str(Path.home())
