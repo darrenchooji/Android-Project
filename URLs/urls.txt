@@ -1,2 +1,6 @@
 com.facebook.orca;http://www.samsung.com
 com.facebook.orca;http://www.tesla.com
+org.telegram.messenger;http://www.tesla.com
+org.telegram.messenger;http://www.apple.com
+jp.naver.line.android;http://www.ferrari.com
+jp.naver.line.android;http://www.lamborghini.com

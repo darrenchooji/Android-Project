@@ -99,6 +99,7 @@ def line(website):
 
     # Exit Line's WebView
     if not anomaly:
+        print("No anomaly detected")
         is_back_in_keep_memo_chat = False
         while not is_back_in_keep_memo_chat:
             subprocess.Popen("adb logcat -c", shell=True)
@@ -112,6 +113,8 @@ def line(website):
                 is_back_in_keep_memo_chat = True
             else:
                 is_back_in_keep_memo_chat = False
+    else:
+        print("Anomaly detected")
 
 def telegram(website):
     # Checking if Telegram is installed and installing the Telegram APK if required
@@ -186,6 +189,11 @@ def telegram(website):
     adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
     os.system(adb_close_web_view_command)
     time.sleep(3)
+
+    if not anomaly:
+        print("No anomaly detected")
+    else:
+        print("Anomaly detected")
 
 
 def facebookmessenger(website):
@@ -272,6 +280,9 @@ def facebookmessenger(website):
     if not anomaly:
         adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
         os.system(adb_close_web_view_command)
+        print("No anomaly detected")
+    else:
+        print("Anomaly detected")
     time.sleep(5)
 
 home_path = str(Path.home())
