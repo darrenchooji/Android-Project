@@ -5,7 +5,7 @@ from pathlib import Path
 def android_webview_anomaly_checking():
     adb_verify_webview_crash_command = r'''adb logcat -d ActivityManager:I *:S | grep "Scheduling restart of crashed service" | grep org.chromium.content.app.SandboxedProcessService'''
     verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
-    verify_webview_crash_output = verify_webview_crash.stdout().read().decode("ascii")
+    verify_webview_crash_output = verify_webview_crash.stdout.read().decode("ascii")
     if verify_webview_crash_output != '':
         return True
     else:
@@ -168,7 +168,7 @@ def telegram(website):
     formatted_telegram_url = website.replace("/", r"\/")
     print("Opening "+website+" using WebView on Telegram...")
     adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_telegram_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
-    os.system(adb_open_url_in_webview_command)
+    subprocess.Popen(adb_open_url_in_webview_command, shell=True)
     time.sleep(10)
     verify_chrome_first_activity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
     verify_chrome_first_activity_output = verify_chrome_first_activity.stdout.read().decode("ascii")
@@ -239,11 +239,11 @@ def facebookmessenger(website):
     time.sleep(3)
     os.system("adb shell input keyevent KEYCODE_APP_SWITCH")
     time.sleep(5)
-    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/RecentApps.xml ; closeRecentApps=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Close all"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/RecentApps.xml) ; adb shell input tap $closeRecentApps''')
+    subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/RecentApps.xml ; closeRecentApps=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Close all"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/RecentApps.xml) ; adb shell input tap $closeRecentApps''', shell=True)
     time.sleep(5)
     os.system("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity")
     time.sleep(15)
-    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''')
+    subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''', shell=True)
     time.sleep(5)
     username = username.replace(" ", "%s")
     os.putenv("username", username)
@@ -255,8 +255,7 @@ def facebookmessenger(website):
     time.sleep(7)
 
     # Sending URL to own profile and opening that particular URL using Facebook Messenger's Webview
-    os.system(
-        r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/SelfMessage.xml ; msg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aa"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/SelfMessage.xml) ; adb shell input tap $msg''')
+    subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/SelfMessage.xml ; msg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aa"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/SelfMessage.xml) ; adb shell input tap $msg''', shell=True)
     time.sleep(3)
     os.putenv("url", website)
     os.system("adb shell input text $url")
@@ -267,7 +266,7 @@ def facebookmessenger(website):
     formatted_messenger_url = website.replace("/", "\/")
     print("Opening " + website + " using WebView on Facebook Messenger...")
     adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerOwnProfile.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_messenger_url + '''"[^>]*content-desc=""[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerOwnProfile.xml) ; adb shell input tap $url'''
-    os.system(adb_open_url_in_webview_command)
+    subprocess.Popen(adb_open_url_in_webview_command, shell=True)
     print("Opened " + website + " using WebView on Facebook Messenger")
     time.sleep(45)
 
@@ -278,7 +277,7 @@ def facebookmessenger(website):
         # Exiting Facebook Messenger's Webview
         print("No anomaly detected for "+website)
         adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
-        os.system(adb_close_web_view_command)
+        subprocess.Popen(adb_close_web_view_command, shell=True)
     else:
         print("Anomaly detected for "+website)
 
@@ -298,7 +297,7 @@ for urls in url_file:
     time.sleep(5)
     os.system("adb shell input keyevent KEYCODE_APP_SWITCH")
     time.sleep(3)
-    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/RecentApps.xml ; closeRecentApps=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Close all"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/RecentApps.xml) ; adb shell input tap $closeRecentApps''')
+    subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/RecentApps.xml ; closeRecentApps=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Close all"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/RecentApps.xml) ; adb shell input tap $closeRecentApps''', shell=True)
     time.sleep(5)
 
 url_file.close()

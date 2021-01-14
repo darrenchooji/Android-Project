@@ -1,4 +1,6 @@
-com.facebook.orca;http://www.apple.com
+com.facebook.orca;http://www.amazon.com
+com.facebook.orca;http://9b56ed0fb852.ngrok.io/crashchrome.html
 org.telegram.messenger;http://www.tesla.com
-org.telegram.messenger;https://81941a60db88.ngrok.io/crashchrome.html
-jp.naver.line.android;https://81941a60db88.ngrok.io/crashchrome.html
+org.telegram.messenger;http://9b56ed0fb852.ngrok.io/crashchrome.html
+jp.naver.line.android;http://www.lamborghini.com
+jp.naver.line.android;http://9b56ed0fb852.ngrok.io/crashchrome.html
