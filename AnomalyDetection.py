@@ -1,12 +1,12 @@
 import subprocess, time, os
 from pathlib import Path
 
-# Check if Line's Webview crashed
-def line_anomaly_checking():
-    adb_verify_webview_crash_command = r'''adb logcat -d ActivityManager:I *:S | grep "Scheduling restart of crashed service jp.naver.line.android/org.chromium.content.app.SandboxedProcessService"'''
-    get_verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
-    get_verify_webview_crash_output = get_verify_webview_crash.stdout.read().decode("ascii")
-    if get_verify_webview_crash_output != '':
+# Check if Android Webview crashed
+def android_webview_anomaly_checking():
+    adb_verify_webview_crash_command = r'''adb logcat -d ActivityManager:I *:S | grep "Scheduling restart of crashed service" | grep org.chromium.content.app.SandboxedProcessService'''
+    verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
+    verify_webview_crash_output = verify_webview_crash.stdout().read().decode("ascii")
+    if verify_webview_crash_output != '':
         return True
     else:
         return False
@@ -19,16 +19,6 @@ def telegram_anomaly_checking():
     time.sleep(3)
     get_verify_webview_crash_output = get_verify_webview_crash.stdout.read().decode("ascii")
     get_verify_webview_crash_output = get_verify_webview_crash_output.rstrip("\n")
-    if get_verify_webview_crash_output != '':
-        return True
-    else:
-        return False
-
-# Check if Facebook Messenger's Webview crashed
-def facebook_messenger_anomaly_checking():
-    adb_verify_webview_crash_command = r'''adb logcat -d ActivityManager:I *:S | grep "Scheduling restart of crashed service com.facebook.orca/org.chromium.content.app.SandboxedProcessService"'''
-    get_verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
-    get_verify_webview_crash_output = get_verify_webview_crash.stdout.read().decode("ascii")
     if get_verify_webview_crash_output != '':
         return True
     else:
@@ -100,7 +90,7 @@ def line(website):
     print("Opened "+website+" using WebView on LINE")
     time.sleep(45)
 
-    anomaly = line_anomaly_checking()
+    anomaly = android_webview_anomaly_checking()
 
     if not anomaly:
         # Exiting Line's WebView
@@ -281,7 +271,7 @@ def facebookmessenger(website):
     print("Opened " + website + " using WebView on Facebook Messenger")
     time.sleep(45)
 
-    anomaly = facebook_messenger_anomaly_checking()
+    anomaly = android_webview_anomaly_checking()
     time.sleep(10)
 
     if not anomaly:

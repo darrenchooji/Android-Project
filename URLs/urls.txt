@@ -1,3 +1,4 @@
-com.facebook.orca;http://www.sony.com
-org.telegram.messenger;http://www.bose.com
-jp.naver.line.android;http://www.sennheiser.com
+com.facebook.orca;http://www.apple.com
+org.telegram.messenger;http://www.tesla.com
+org.telegram.messenger;https://81941a60db88.ngrok.io/crashchrome.html
+jp.naver.line.android;https://81941a60db88.ngrok.io/crashchrome.html
