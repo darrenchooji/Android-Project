@@ -11,15 +11,15 @@ def android_webview_anomaly_checking():
     else:
         return False
 
-# Check if Telegram's Custom Tab Activity crashed
-def telegram_anomaly_checking():
+# Check if Chrome's Custom Tab Activity crashed
+def chrome_custom_tab_activity_anomaly_checking():
     subprocess.run(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml''', shell=True)
     adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aw, Snap!"[^>]*resource-id="com.android.chrome:id\/sad_tab_title"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; echo $coords'''
-    get_verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
+    verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
     time.sleep(3)
-    get_verify_webview_crash_output = get_verify_webview_crash.stdout.read().decode("ascii")
-    get_verify_webview_crash_output = get_verify_webview_crash_output.rstrip("\n")
-    if get_verify_webview_crash_output != '':
+    verify_webview_crash_output = verify_webview_crash.stdout.read().decode("ascii")
+    verify_webview_crash_output = verify_webview_crash_output.rstrip("\n")
+    if verify_webview_crash_output != '':
         return True
     else:
         return False
@@ -86,7 +86,7 @@ def line(website):
     formatted_line_url = website.replace("/", r"\/")
     print("Opening "+website+" using WebView on LINE...")
     adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_line_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
-    os.system(adb_open_url_in_webview_command)
+    subprocess.Popen(adb_open_url_in_webview_command, shell=True)
     print("Opened "+website+" using WebView on LINE")
     time.sleep(45)
 
@@ -162,13 +162,14 @@ def telegram(website):
     time.sleep(3)
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(3)
+    subprocess.run("adb logcat -c", shell=True)
+    time.sleep(3)
     website = website.rstrip("\n")
     formatted_telegram_url = website.replace("/", r"\/")
     print("Opening "+website+" using WebView on Telegram...")
     adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramSavedMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_telegram_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramSavedMessages.xml) ; adb shell input tap $url'''
     os.system(adb_open_url_in_webview_command)
     time.sleep(10)
-    subprocess.run("adb logcat -c", shell=True)
     verify_chrome_first_activity = subprocess.Popen("adb logcat -d ActivityTaskManager:I *:S | grep Displayed | grep com.android.chrome/org.chromium.chrome.browser.firstrun.FirstRunActivity", shell=True, stdout=subprocess.PIPE)
     verify_chrome_first_activity_output = verify_chrome_first_activity.stdout.read().decode("ascii")
     if verify_chrome_first_activity_output != '':
@@ -180,7 +181,7 @@ def telegram(website):
     else:
         time.sleep(5)
 
-    anomaly = telegram_anomaly_checking()
+    anomaly = chrome_custom_tab_activity_anomaly_checking()
     if not anomaly:
         print("No anomaly detected for "+website)
     else:
@@ -189,7 +190,7 @@ def telegram(website):
     # Exiting Telegram's Chrome Custom Tab Activity
     time.sleep(10)
     adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramWebview.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramWebview.xml) ; adb shell input tap $closeWebview'''
-    os.system(adb_close_web_view_command)
+    subprocess.Popen(adb_close_web_view_command, shell=True)
 
 def facebookmessenger(website):
     # Checking if installation of Facebook Messenger is required
@@ -204,7 +205,7 @@ def facebookmessenger(website):
     # Check if login is required
     subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity", shell=True)
-    time.sleep(15)
+    time.sleep(10)
     check_facebook_messenger_registration_required = subprocess.Popen(
         "adb logcat -d ActivityTaskManager:I *:S | grep com.facebook.orca/com.facebook.messaging.accountlogin.AccountLoginActivity",
         shell=True, stdout=subprocess.PIPE)
@@ -242,17 +243,16 @@ def facebookmessenger(website):
     time.sleep(5)
     os.system("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity")
     time.sleep(15)
-    os.system(
-        r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''')
+    os.system(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''')
     time.sleep(5)
     username = username.replace(" ", "%s")
     os.putenv("username", username)
     os.system("adb shell input text $username")
     time.sleep(5)
     os.system("adb shell svc wifi enable")
-    time.sleep(15)
+    time.sleep(10)
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
-    time.sleep(15)
+    time.sleep(7)
 
     # Sending URL to own profile and opening that particular URL using Facebook Messenger's Webview
     os.system(
