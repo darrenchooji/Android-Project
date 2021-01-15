@@ -202,8 +202,9 @@ def facebookmessenger(website):
         subprocess.run("adb install ~/Desktop/APKs/messenger*.apk", shell=True)
         print("Facebook Messenger installation finished")
 
-    subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell svc wifi disable", shell=True)
+    time.sleep(3)
+    subprocess.run("adb logcat -c", shell=True)
     subprocess.run("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity", shell=True)
     time.sleep(10)
 

@@ -1,1 +1,6 @@
-com.facebook.orca;http://www.w3schools.com
+com.facebook.orca;http://www.samsung.com
+com.facebook.orca;http://72768e70f2b8.ngrok.io/crashchrome.html
+jp.naver.line.android;http://www.apple.com
+jp.naver.line.android;http://72768e70f2b8.ngrok.io/crashchrome.html
+org.telegram.messenger;http://www.tesla.com
+org.telegram.messenger;http://72768e70f2b8.ngrok.io/crashchrome.html
