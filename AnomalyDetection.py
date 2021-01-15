@@ -202,10 +202,12 @@ def facebookmessenger(website):
         subprocess.run("adb install ~/Desktop/APKs/messenger*.apk", shell=True)
         print("Facebook Messenger installation finished")
 
-    # Check if login is required
     subprocess.run("adb logcat -c", shell=True)
+    subprocess.run("adb shell svc wifi disable", shell=True)
     subprocess.run("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity", shell=True)
     time.sleep(10)
+
+    # Check if login is required
     check_facebook_messenger_registration_required = subprocess.Popen(
         "adb logcat -d ActivityTaskManager:I *:S | grep com.facebook.orca/com.facebook.messaging.accountlogin.AccountLoginActivity",
         shell=True, stdout=subprocess.PIPE)
@@ -228,6 +230,8 @@ def facebookmessenger(website):
     # Facebook Messenger login
     if registration_required == True:
         print("Logging in to Facebook Messenger...")
+        os.system("adb shell svc wifi enable")
+        time.sleep(7)
         os.putenv("email", email)
         os.putenv("password", password)
         os.system("cd ~/Desktop/AndroidAnomalyDetection/FacebookMessengerShellScripts ; ./FacebookMessengerRegistration.sh")
@@ -235,14 +239,6 @@ def facebookmessenger(website):
     facebook_messenger_credentials.close()
 
     # Open Facebook Messenger's Self-Messaging
-    os.system("adb shell svc wifi disable")
-    time.sleep(3)
-    os.system("adb shell input keyevent KEYCODE_APP_SWITCH")
-    time.sleep(5)
-    subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/RecentApps.xml ; closeRecentApps=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Close all"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/RecentApps.xml) ; adb shell input tap $closeRecentApps''', shell=True)
-    time.sleep(5)
-    os.system("adb shell am start -n com.facebook.orca/.auth.StartScreenActivity")
-    time.sleep(15)
     subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/FbMessengerChats.xml ; newMessage=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="New message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/FbMessengerChats.xml) ; adb shell input tap $newMessage''', shell=True)
     time.sleep(5)
     username = username.replace(" ", "%s")
