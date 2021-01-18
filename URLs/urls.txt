@@ -1,3 +1,1 @@
-com.facebook.orca;http://www.apple.com;Apple
-jp.naver.line.android;http://www.lamborghini.com;Automobili Lamborghini - Official Website | Lamborghini.com
-org.telegram.messenger;http://www.samsung.com;Samsung
+jp.naver.line.android;www.samsung.com;https://www.samsung.com/sg/
