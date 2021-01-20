@@ -13,12 +13,12 @@ def android_webview_anomaly_checking(verification_text):
     else:
         subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/Webview.xml''',
                          shell=True)
-        time.sleep(10)
+        time.sleep(3)
         verification_text = verification_text.replace("|", "\|")
         verification_text = verification_text.replace("/", "\/")
-        adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + verification_text + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/Webview.xml) ; echo $coords'''
+        verification_text = verification_text.rstrip("\n")
+        adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="[a-zA-Z\|\/\*\~\`\^\!\-,. ]*''' + verification_text + '''[a-zA-Z\|\/\*\~\`\^\!\-,. ]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/Webview.xml) ; echo $coords'''
         verify = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
-        time.sleep(3)
         verify_output = verify.stdout.read().decode("ascii")
         verify_output = verify_output.rstrip("\n")
         if verify_output != '':
@@ -32,10 +32,9 @@ def android_webview_anomaly_checking(verification_text):
 def chrome_custom_tab_activity_anomaly_checking(verification_text):
     subprocess.run(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/ChromeCustomTab.xml''',
                    shell=True)
-    time.sleep(10)
+    time.sleep(3)
     adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aw, Snap!"[^>]*resource-id="com.android.chrome:id\/sad_tab_title"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/ChromeCustomTab.xml) ; echo $coords'''
     verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
-    time.sleep(3)
     verify_webview_crash_output = verify_webview_crash.stdout.read().decode("ascii")
     verify_webview_crash_output = verify_webview_crash_output.rstrip("\n")
     if verify_webview_crash_output != '':
@@ -44,8 +43,8 @@ def chrome_custom_tab_activity_anomaly_checking(verification_text):
     else:
         verification_text = verification_text.replace("|", "\|")
         verification_text = verification_text.replace("/", "\/")
-        adb_verify_custom_tab_activity_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + verification_text + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/ChromeCustomTab.xml) ; echo $coords'''
-        time.sleep(3)
+        verification_text = verification_text.rstrip("\n")
+        adb_verify_custom_tab_activity_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="[a-zA-Z\|\/\*\~\`\^\!\-,. ]*''' + verification_text + '''[a-zA-Z\|\/\*\~\`\^\!\-,. ]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/ChromeCustomTab.xml) ; echo $coords'''
         verify = subprocess.Popen(adb_verify_custom_tab_activity_crash_command, shell=True, stdout=subprocess.PIPE)
         verify_output = verify.stdout.read().decode("ascii")
         verify_output = verify_output.rstrip("\n")

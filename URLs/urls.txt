@@ -1,1 +1,3 @@
-jp.naver.line.android;www.samsung.com;https://www.samsung.com/sg/
+jp.naver.line.android;www.samsung.com;Samsung Singapore
+org.telegram.messenger;www.lamborghini.com;Lamborghini.com
+com.facebook.orca;www.samsung.com;Samsung Singapore
