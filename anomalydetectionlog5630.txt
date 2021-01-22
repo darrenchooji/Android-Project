@@ -1,0 +1,8 @@
+======================================== ANOMALY DETECTION ========================================
+Serial Number: 5630
+Testing http://www.lamborghini.com on Facebook Messenger (1/3)
+No anomaly detected
+Testing http://www.lamborghini.com on Facebook Messenger (2/3)
+No anomaly detected
+Testing http://www.lamborghini.com on Facebook Messenger (3/3)
+No anomaly detected
