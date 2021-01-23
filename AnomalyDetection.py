@@ -8,6 +8,17 @@ home_path = str(Path.home())
 serial_number = random.randint(0000, 9999)
 log_file = open(home_path + "/Desktop/AndroidAnomalyDetection/anomalydetectionlog"+str(serial_number)+".txt", "w")
 
+# Check if webpage downloaded any files/folders
+def webpage_downloaded_file_checking():
+    adb_verify_webview_download_command = r'''adb logcat -d MediaProvider:D *:S | grep /storage/emulated/0/Download/'''
+    verify_webview_download = subprocess.Popen(adb_verify_webview_download_command, shell=True, stdout=subprocess.PIPE)
+    verify_webview_download_output = verify_webview_download.stdout.read().decode("ascii")
+    if verify_webview_download_output != '':
+        log_file.write("Anomaly detected! Webpage has downloaded a file!")
+        return True
+    else:
+        return False
+
 # Checking for anomalies in Android WebView
 def android_webview_anomaly_checking(verification_text):
     # Check if webpage crashed
@@ -19,20 +30,25 @@ def android_webview_anomaly_checking(verification_text):
         log_file.close()
         return True
     else:
-        subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/Webview.xml''',
-                         shell=True)
-        time.sleep(3)
-        verification_text = verification_text.replace("|", "\|")
-        verification_text = verification_text.replace("/", "\/")
-        verification_text = verification_text.rstrip("\n")
-        adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="[a-zA-Z\|\/\*\~\`\^\!\-,. ]*''' + verification_text + '''[a-zA-Z\|\/\*\~\`\^\!\-,. ]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/Webview.xml) ; echo $coords'''
-        verify = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
-        verify_output = verify.stdout.read().decode("ascii")
-        verify_output = verify_output.rstrip("\n")
-        if verify_output != '':
-            log_file.write("No anomaly detected\n")
-        else:
-            log_file.write("Anomaly detected! Webpage does not contain the verification text!\n")
+        # Call function to check if webpage has downloaded any file/folder
+        download = webpage_downloaded_file_checking()
+
+        # Check if webpage contains the verification text
+        if not download:
+            subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/Webview.xml''',
+                             shell=True)
+            time.sleep(3)
+            verification_text = verification_text.replace("|", "\|")
+            verification_text = verification_text.replace("/", "\/")
+            verification_text = verification_text.rstrip("\n")
+            adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="[a-zA-Z\|\/\*\~\`\^\!\-,. ]*''' + verification_text + '''[a-zA-Z\|\/\*\~\`\^\!\-,. ]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/Webview.xml) ; echo $coords'''
+            verify = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
+            verify_output = verify.stdout.read().decode("ascii")
+            verify_output = verify_output.rstrip("\n")
+            if verify_output != '':
+                log_file.write("No anomaly detected\n")
+            else:
+                log_file.write("Anomaly detected! Webpage does not contain the verification text!\n")
         return False
 
 
@@ -47,20 +63,23 @@ def chrome_custom_tab_activity_anomaly_checking(verification_text):
     verify_webview_crash_output = verify_webview_crash_output.rstrip("\n")
     if verify_webview_crash_output != '':
         log_file.write("Anomaly detected! Webpage crashed!\n")
-        log_file.close()
     else:
-        verification_text = verification_text.replace("|", "\|")
-        verification_text = verification_text.replace("/", "\/")
-        verification_text = verification_text.rstrip("\n")
-        adb_verify_custom_tab_activity_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="[a-zA-Z\|\/\*\~\`\^\!\-,. ]*''' + verification_text + '''[a-zA-Z\|\/\*\~\`\^\!\-,. ]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/ChromeCustomTab.xml) ; echo $coords'''
-        verify = subprocess.Popen(adb_verify_custom_tab_activity_crash_command, shell=True, stdout=subprocess.PIPE)
-        verify_output = verify.stdout.read().decode("ascii")
-        verify_output = verify_output.rstrip("\n")
-        if verify_output != '':
-            log_file.write("No anomaly detected\n")
-        else:
-            log_file.write("Anomaly detected! Webpage does not contain the verification text!\n")
+        # Call function to check if webpage has downloaded any file/folder
+        download = webpage_downloaded_file_checking()
 
+        # Check if webpage contains the verification text
+        if not download:
+            verification_text = verification_text.replace("|", "\|")
+            verification_text = verification_text.replace("/", "\/")
+            verification_text = verification_text.rstrip("\n")
+            adb_verify_custom_tab_activity_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="[a-zA-Z\|\/\*\~\`\^\!\-,. ]*''' + verification_text + '''[a-zA-Z\|\/\*\~\`\^\!\-,. ]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/ChromeCustomTab.xml) ; echo $coords'''
+            verify = subprocess.Popen(adb_verify_custom_tab_activity_crash_command, shell=True, stdout=subprocess.PIPE)
+            verify_output = verify.stdout.read().decode("ascii")
+            verify_output = verify_output.rstrip("\n")
+            if verify_output != '':
+                log_file.write("No anomaly detected\n")
+            else:
+                log_file.write("Anomaly detected! Webpage does not contain the verification text!\n")
 
 def line(website, verification_text):
     # Checking if installation of Link APK is required
