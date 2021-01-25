@@ -10,7 +10,18 @@ log_file = open(home_path + "/Desktop/AndroidAnomalyDetection/anomalydetectionlo
 
 # Check if webpage downloaded any files/folders
 def webpage_downloaded_file_checking(index):
-    if index == 1:
+    subprocess.Popen("adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/CheckingPage.xml",
+                     shell=True)
+    time.sleep(3)
+    adb_verify_check_file_existence_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Do you want to download [a-zA-Z\|\/\*\~\`\^\!\-_,.? ]*"[^>]*resource-id="com.android.chrome:id\/infobar_message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/CheckingPage.xml) ; echo $coords'''
+    verify_file_existence = subprocess.Popen(adb_verify_check_file_existence_command, shell=True,
+                                             stdout=subprocess.PIPE)
+    verify_file_existence_output = verify_file_existence.stdout.read().decode("ascii")
+    verify_file_existence_output = verify_file_existence_output.rstrip("\n")
+    if verify_file_existence_output != '':
+        log_file.write("Anomaly detected! Webpage attempted to download a file that already exists in the phone!\n")
+        return True
+    else:
         adb_verify_webview_download_command = r'''adb logcat -d MediaProvider:D *:S | grep /storage/emulated/0/Download/'''
         verify_webview_download = subprocess.Popen(adb_verify_webview_download_command, shell=True,
                                                    stdout=subprocess.PIPE)
@@ -20,28 +31,6 @@ def webpage_downloaded_file_checking(index):
             return True
         else:
             return False
-    elif index == 2 or index == 3:
-        subprocess.Popen("adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/CheckingPage.xml",
-                         shell=True)
-        time.sleep(3)
-        adb_verify_check_file_existence_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Do you want to download [a-zA-Z\|\/\*\~\`\^\!\-_,.? ]*"[^>]*resource-id="com.android.chrome:id\/infobar_message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/CheckingPage.xml) ; echo $coords'''
-        verify_file_existence = subprocess.Popen(adb_verify_check_file_existence_command, shell=True,
-                                                 stdout=subprocess.PIPE)
-        verify_file_existence_output = verify_file_existence.stdout.read().decode("ascii")
-        verify_file_existence_output = verify_file_existence_output.rstrip("\n")
-        if verify_file_existence_output != '':
-            log_file.write("Anomaly detected! Webpage attempted to download a file that already exists in the phone!\n")
-            return True
-        else:
-            adb_verify_webview_download_command = r'''adb logcat -d MediaProvider:D *:S | grep /storage/emulated/0/Download/'''
-            verify_webview_download = subprocess.Popen(adb_verify_webview_download_command, shell=True,
-                                                       stdout=subprocess.PIPE)
-            verify_webview_download_output = verify_webview_download.stdout.read().decode("ascii")
-            if verify_webview_download_output != '':
-                log_file.write("Anomaly detected! Webpage has downloaded a file!\n")
-                return True
-            else:
-                return False
 
 # Checking for anomalies in Android WebView
 def android_webview_anomaly_checking(verification_text, application, index):
@@ -374,8 +363,7 @@ def facebookmessenger(website, verification_text):
 # Reading file which contains the desired IM's package name and URL
 url_file = open(home_path + "/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
 log_file.write(
-    "======================================== ANOMALY DETECTION ========================================\nSerial Number: " + str(
-        serial_number) + "\n")
+    "======================================== ANOMALY DETECTION ========================================\n\n")
 for urls in url_file:
     url_list = urls.split(";")
     im = url_list[0]
@@ -396,7 +384,9 @@ for urls in url_file:
     subprocess.Popen(
         r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/RecentApps.xml ; closeRecentApps=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Close all"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/RecentApps.xml) ; adb shell input tap $closeRecentApps''',
         shell=True)
+    log_file.write("===================================================================================================\n\n")
     time.sleep(5)
 
 url_file.close()
 log_file.close()
+print("Log file saved at ~/Desktop/AndroidAnomalyDetection/anomalydetectionlog"+str(serial_number)+".txt")

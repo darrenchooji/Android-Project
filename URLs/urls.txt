@@ -1,2 +1,4 @@
-com.facebook.orca;http://95db96e2c585.ngrok.io/onload_download/downloadable.html;download
-org.telegram.messenger;http://95db96e2c585.ngrok.io/crashchrome.html;crash
+com.facebook.orca;http://24b7def468dd.ngrok.io/onload_download/downloadable.html;download
+org.telegram.messenger;http://24b7def468dd.ngrok.io/crashchrome.html;crash
+jp.naver.line.android;www.samsung.com;Samsung Singapore
+com.facebook.orca;http://www.apple.com;test
