@@ -1,0 +1,8 @@
+======================================== ANOMALY DETECTION ========================================
+Serial Number: 7795
+Testing http://95db96e2c585.ngrok.io/onload_download/downloadable.html on Facebook Messenger (1/3)
+Anomaly detected! Webpage has downloaded a file!
+Testing http://95db96e2c585.ngrok.io/onload_download/downloadable.html on Facebook Messenger (2/3)
+Anomaly detected! Webpage attempted to download a file that already exists in the phone!
+Testing http://95db96e2c585.ngrok.io/onload_download/downloadable.html on Facebook Messenger (3/3)
+Anomaly detected! Webpage attempted to download a file that already exists in the phone!
