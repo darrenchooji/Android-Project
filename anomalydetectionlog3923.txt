@@ -1,0 +1,57 @@
+======================================== ANOMALY DETECTION ========================================
+
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Facebook Messenger (1/3)
+Anomaly detected! Webpage crashed!
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Facebook Messenger (2/3)
+Anomaly detected! Webpage crashed!
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Facebook Messenger (3/3)
+Anomaly detected! Webpage crashed!
+
+===================================================================================================
+
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Telegram (1/3)
+Anomaly detected! Webpage crashed!
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Telegram (2/3)
+Anomaly detected! Webpage crashed!
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Telegram (3/3)
+Anomaly detected! Webpage crashed!
+
+===================================================================================================
+
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Telegram (1/3)
+Anomaly detected! Webpage crashed!
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Telegram (2/3)
+Anomaly detected! Webpage crashed!
+Testing http://2c556d8615a9.ngrok.io/crashchrome.html on Telegram (3/3)
+Anomaly detected! Webpage crashed!
+
+===================================================================================================
+
+Testing http://2c556d8615a9.ngrok.io/onload_download/downloadable.html on Facebook Messenger (1/3)
+Anomaly detected! Webpage has downloaded a file!
+Testing http://2c556d8615a9.ngrok.io/onload_download/downloadable.html on Facebook Messenger (2/3)
+Anomaly detected! Webpage attempted to download a file that already exists in the phone!
+Testing http://2c556d8615a9.ngrok.io/onload_download/downloadable.html on Facebook Messenger (3/3)
+Anomaly detected! Webpage attempted to download a file that already exists in the phone!
+
+===================================================================================================
+
+Testing http://www.samsung.com on Telegram (1/3)
+No anomaly detected
+Testing http://www.samsung.com on Telegram (2/3)
+No anomaly detected
+Testing http://www.samsung.com on Telegram (3/3)
+No anomaly detected
+
+===================================================================================================
+
+Testing http://www.Apple.com on Telegram (1/3)
+Anomaly detected! Webpage does not contain the verification text!
+Testing http://www.Apple.com on Telegram (2/3)
+Anomaly detected! Webpage does not contain the verification text!
+Testing http://www.Apple.com on Telegram (3/3)
+Anomaly detected! Webpage does not contain the verification text!
+
+===================================================================================================
+
+END

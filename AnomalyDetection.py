@@ -9,7 +9,7 @@ serial_number = random.randint(0000, 9999)
 log_file = open(home_path + "/Desktop/AndroidAnomalyDetection/anomalydetectionlog" + str(serial_number) + ".txt", "w")
 
 # Check if webpage downloaded any files/folders
-def webpage_downloaded_file_checking(index):
+def webpage_downloaded_file_checking():
     subprocess.Popen("adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/CheckingPage.xml",
                      shell=True)
     time.sleep(3)
@@ -33,7 +33,7 @@ def webpage_downloaded_file_checking(index):
             return False
 
 # Checking for anomalies in Android WebView
-def android_webview_anomaly_checking(verification_text, application, index):
+def android_webview_anomaly_checking(verification_text, application):
     # Check if webpage crashed
     adb_verify_webview_crash_command = r'''adb logcat -d ActivityManager:I *:S | grep "Scheduling restart of crashed service" | grep org.chromium.content.app.SandboxedProcessService'''
     verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
@@ -43,7 +43,7 @@ def android_webview_anomaly_checking(verification_text, application, index):
         return True
     else:
         # Call function to check if webpage has downloaded any file/folder
-        download = webpage_downloaded_file_checking(index)
+        download = webpage_downloaded_file_checking()
 
         # Check if webpage contains the verification text
         if not download:
@@ -69,7 +69,7 @@ def android_webview_anomaly_checking(verification_text, application, index):
 
 
 # Checking for anomalies in Chrome Custom Tab Activity
-def chrome_custom_tab_activity_anomaly_checking(verification_text, index):
+def chrome_custom_tab_activity_anomaly_checking(verification_text):
     subprocess.run(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/ChromeCustomTab.xml''',
                    shell=True)
     time.sleep(3)
@@ -81,7 +81,7 @@ def chrome_custom_tab_activity_anomaly_checking(verification_text, index):
         log_file.write("Anomaly detected! Webpage crashed!\n")
     else:
         # Call function to check if webpage has downloaded any file/folder
-        download = webpage_downloaded_file_checking(index)
+        download = webpage_downloaded_file_checking()
 
         # Check if webpage contains the verification text
         if not download:
@@ -166,8 +166,7 @@ def line(website, verification_text):
         adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_line_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
         subprocess.Popen(adb_open_url_in_webview_command, shell=True)
         time.sleep(45)
-        index = x+1
-        crash = android_webview_anomaly_checking(verification_text, "line", index)
+        crash = android_webview_anomaly_checking(verification_text, "line")
 
         if not crash:
             # Exiting Line's WebView
@@ -261,8 +260,7 @@ def telegram(website, verification_text):
             time.sleep(10)
         else:
             time.sleep(5)
-        index = x+1
-        chrome_custom_tab_activity_anomaly_checking(verification_text, index)
+        chrome_custom_tab_activity_anomaly_checking(verification_text)
 
         # Exiting Telegram's Chrome Custom Tab Activity
         time.sleep(10)
@@ -350,8 +348,7 @@ def facebookmessenger(website, verification_text):
         adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerOwnProfile.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_messenger_url + '''"[^>]*content-desc=""[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerOwnProfile.xml) ; adb shell input tap $url'''
         subprocess.Popen(adb_open_url_in_webview_command, shell=True)
         time.sleep(45)
-        index = x+1
-        crash = android_webview_anomaly_checking(verification_text, "facebookmessenger", index)
+        crash = android_webview_anomaly_checking(verification_text, "facebookmessenger")
         time.sleep(10)
         if not crash:
             # Exiting Facebook Messenger's Webview
@@ -384,9 +381,11 @@ for urls in url_file:
     subprocess.Popen(
         r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/RecentApps.xml ; closeRecentApps=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Close all"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/RecentApps.xml) ; adb shell input tap $closeRecentApps''',
         shell=True)
-    log_file.write("===================================================================================================\n\n")
+    log_file.write("\n===================================================================================================\n\n")
     time.sleep(5)
 
+log_file.write("END")
 url_file.close()
 log_file.close()
+
 print("Log file saved at ~/Desktop/AndroidAnomalyDetection/anomalydetectionlog"+str(serial_number)+".txt")
