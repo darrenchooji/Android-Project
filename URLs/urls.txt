@@ -1,6 +1,3 @@
-com.facebook.orca;http://2c556d8615a9.ngrok.io/crashchrome.html;crash
-jp.naver.line.android;http://2c556d8615a9.ngrok.io/crashchrome.html;crash
-org.telegram.messenger;http://2c556d8615a9.ngrok.io/crashchrome.html;telegram
-com.facebook.orca;http://2c556d8615a9.ngrok.io/onload_download/downloadable.html;download
-jp.naver.line.android;http://www.samsung.com;Samsung
-jp.naver.line.android;http://www.Apple.com;test
+com.facebook.orca;http://59e9701ce040.ngrok.io/crashchrome.html;crash
+com.facebook.orca;http://www.samsung.com;Samsung
+com.facebook.orca;http://59e9701ce040.ngrok.io/onload_download/downloadable.html;download
