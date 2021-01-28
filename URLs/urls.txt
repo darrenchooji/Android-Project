@@ -1,3 +1,2 @@
-org.telegram.messenger;http://db1e0101abba.ngrok.io/crashchrome.html;crash
-org.telegram.messenger;http://www.samsung.com;Samsung
-org.telegram.messenger;http://db1e0101abba.ngrok.io/onload_download/downloadable.html;download
+com.facebook.orca;http://5e62b7605eab.ngrok.io/onload_download/downloadexcel.html;download
+org.telegram.messenger;http://5e62b7605eab.ngrok.io/onload_download/downloadexcel.html;download

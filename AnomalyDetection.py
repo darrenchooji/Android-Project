@@ -10,28 +10,39 @@ serial_number = random.randint(0000, 9999)
 log_file = open(home_path + "/Desktop/AndroidAnomalyDetection/anomalydetectionlog" + str(serial_number) + ".txt", "w")
 
 
-# Check if webpage downloaded any files/folders
+# Check if webpage downloaded any file/folder
 def webpage_downloaded_file_checking():
-    subprocess.Popen("adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/CheckingPage.xml",
+    subprocess.Popen("adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/CheckingWebpage.xml",
                      shell=True)
-    adb_verify_check_file_existence_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Do you want to download [a-zA-Z\|\/\*\~\`\^\!\-_,.? ]*"[^>]*resource-id="com.android.chrome:id\/infobar_message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/CheckingPage.xml) ; echo $coords'''
-    verify_file_existence = subprocess.Popen(adb_verify_check_file_existence_command, shell=True,
+    # Checking if webpage attempted to download a file/folder that already exists in the phone (Chrome Download Settings --> "Ask where to save files" set to OFF)
+    adb_verify_check_file_existence_command_01 = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Do you want to download [a-zA-Z\|\/\*\~\`\^\!\-_,.? ]*"[^>]*resource-id="com.android.chrome:id\/infobar_message"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/CheckingWebpage.xml) ; echo $coords'''
+    verify_file_existence_01 = subprocess.Popen(adb_verify_check_file_existence_command_01, shell=True,
                                              stdout=subprocess.PIPE)
-    verify_file_existence_output = verify_file_existence.stdout.read().decode("ascii")
-    verify_file_existence_output = verify_file_existence_output.rstrip("\n")
-    if verify_file_existence_output != '':
+    verify_file_existence_output_01 = verify_file_existence_01.stdout.read().decode("ascii")
+    verify_file_existence_output_01 = verify_file_existence_output_01.rstrip("\n")
+    if verify_file_existence_output_01 != '':
         log_file.write("Anomaly detected! Webpage attempted to download a file that already exists in the phone!\n")
-        return True
+        return 1
     else:
-        adb_verify_webview_download_command = r'''adb logcat -d MediaProvider:D *:S | grep /storage/emulated/0/Download/'''
-        verify_webview_download = subprocess.Popen(adb_verify_webview_download_command, shell=True,
-                                                   stdout=subprocess.PIPE)
-        verify_webview_download_output = verify_webview_download.stdout.read().decode("ascii")
-        if verify_webview_download_output != '':
-            log_file.write("Anomaly detected! Webpage has downloaded a file!\n")
-            return True
+        # Checking if webpage attempted to download a file/folder that already exists in the phone (Chrome Download Settings --> "Ask where to save files" set to ON)
+        adb_verify_check_file_existence_command_02 = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Download file again\?"[^>]*resource-id="com.android.chrome:id\/title"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/CheckingWebpage.xml) ; echo $coords'''
+        verify_file_existence_02 = subprocess.Popen(adb_verify_check_file_existence_command_02, shell=True, stdout=subprocess.PIPE)
+        verify_file_existence_output_02 = verify_file_existence_02.stdout.read().decode("ascii")
+        verify_file_existence_output_02 = verify_file_existence_output_02.rstrip("\n")
+        if verify_file_existence_output_02 != '':
+            log_file.write("Anomaly detected! Webpage attempted to download a file that already exists in the phone!\n")
+            return 2
         else:
-            return False
+            # Checking if webpage has downloaded a new file/folder
+            adb_verify_webview_download_command = r'''adb logcat -d MediaProvider:D *:S | grep /storage/emulated/0/Download/'''
+            verify_webview_download = subprocess.Popen(adb_verify_webview_download_command, shell=True,
+                                                       stdout=subprocess.PIPE)
+            verify_webview_download_output = verify_webview_download.stdout.read().decode("ascii")
+            if verify_webview_download_output != '':
+                log_file.write("Anomaly detected! Webpage has downloaded a file!\n")
+                return 3
+            else:
+                return 4
 
 
 # Check if webpage crashed
@@ -53,10 +64,12 @@ def android_webview_anomaly_checking(verification_text):
     if crash:
         return 1
     else:
-        # Call function to check if webpage has downloaded any file/folder
+        # Call function to check if webpage has downloaded or attempted to download any file/folder
         download = webpage_downloaded_file_checking()
-        if download:
+        if download == 1 or download == 3:
             return 2
+        elif download == 2:
+            return 5
         else:
             # Check if webpage contains the verification text
             subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/Webview.xml''',
@@ -99,8 +112,10 @@ def chrome_custom_tab_anomaly_checking(verification_text):
         download = webpage_downloaded_file_checking()
 
         # Check if webpage contains the verification text
-        if download:
+        if download == 1 or download == 3:
             return 2
+        elif download == 2:
+            return 5
         else:
             verification_text = verification_text.replace("|", "\|")
             verification_text = verification_text.replace("/", "\/")
@@ -188,10 +203,9 @@ def line(website, verification_text):
             start = time.time()
             result = android_webview_anomaly_checking(verification_text)
             end = time.time()
-            if result == 3:
-                elapsed_time = end - start
-                time_countdown = time_countdown - elapsed_time
-            else:
+            elapsed_time = end - start
+            time_countdown = time_countdown - elapsed_time
+            if result != 3:
                 break
 
         time.sleep(5)
@@ -202,7 +216,8 @@ def line(website, verification_text):
             # Exiting Line's WebView
             adb_close_line_in_app_browser_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/LineWebview.xml ; coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /resource-id="jp.naver.line.android:id\/iab_header_close"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/LineWebview.xml) ; adb shell input tap $coords'''
             subprocess.Popen(adb_close_line_in_app_browser_command, shell=True)
-        elif result == 1:
+
+        if result == 1 or result == 2 or result == 4 or result == 5:
             time_counter = 30.0 - time_countdown
             log_file.write("Detected at "+str(time_counter)+" seconds\n")
         time.sleep(10)
@@ -275,10 +290,9 @@ def telegram(website, verification_text):
             start = time.time()
             result = chrome_custom_tab_anomaly_checking(verification_text)
             end = time.time()
-            if result == 3:
-                elapsed_time = end - start
-                time_countdown = time_countdown - elapsed_time
-            else:
+            elapsed_time = end - start
+            time_countdown = time_countdown - elapsed_time
+            if result != 3:
                 break
 
         time.sleep(5)
@@ -296,8 +310,12 @@ def telegram(website, verification_text):
                     os.system("adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 66")
                     time.sleep(5)
                 else:
-                    log_file.write("Anomaly detected! Webpage was loaded but did not contain verifcation text!\n")
-        elif result == 1:
+                    log_file.write("Anomaly detected! Webpage was loaded but did not contain verification text!\n")
+
+        if result == 5:
+            subprocess.Popen("adb shell input keyevent 4", shell=True)
+
+        if result == 1 or result == 2 or result == 4 or result == 5:
             time_counter = 30.0 - time_countdown
             log_file.write("Detected at "+str(time_counter)+" seconds\n")
 
@@ -391,10 +409,9 @@ def facebookmessenger(website, verification_text):
             start = time.time()
             result = android_webview_anomaly_checking(verification_text)
             end = time.time()
-            if result == 3:
-                elapsed_time = end - start
-                time_countdown = time_countdown - elapsed_time
-            else:
+            elapsed_time = end - start
+            time_countdown = time_countdown - elapsed_time
+            if result != 3:
                 break
 
         time.sleep(5)
@@ -404,10 +421,14 @@ def facebookmessenger(website, verification_text):
                 time.sleep(3)
             elif result == 3:
                 log_file.write("Anomaly detected! Webpage was loaded but did not contain verification text!\n")
+            elif result == 5:
+                subprocess.Popen("adb shell input keyevent 4 ; sleep 3 ; adb shell input keyevent 4", shell=True)
+                time.sleep(3)
 
             adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/MessengerWebView.xml ; closeBrowser=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close browser"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/MessengerWebView.xml) ; adb shell input tap $closeBrowser'''
             subprocess.Popen(adb_close_web_view_command, shell=True)
-        elif result == 1:
+
+        if result == 1 or result == 2 or result == 4 or result == 5:
             time_counter = 30.0 - time_countdown
             log_file.write("Detected at "+str(time_counter)+" seconds\n")
         time.sleep(10)
