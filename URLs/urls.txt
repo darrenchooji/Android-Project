@@ -1,3 +1,2 @@
-org.telegram.messenger;www.samsung.com;Samsung Singapore
-com.facebook.orca;www.samsung.com;Samsung Singapore
-jp.naver.line.android;www.samsung.com;Samsung Singapore
+org.telegram.messenger;http://92e2d314e7eb.ngrok.io/downloadexcel.html;crash
+org.telegram.messenger;http://92e2d314e7eb.ngrok.io/crashchrome.html;crash
