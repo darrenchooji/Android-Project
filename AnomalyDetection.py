@@ -197,7 +197,17 @@ def line(website, verification_text):
         log_file.write("Testing " + website.rstrip("\n") + " on Line (" + str(x + 1) + "/3)\n")
         os.system("adb logcat -c")
         time.sleep(5)
-        adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_line_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
+        file_pulled = False
+        while not file_pulled:
+            pull_line_chat_xml = subprocess.Popen(
+                r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/KeepMemo.xml''', shell=True,
+                stdout=subprocess.PIPE)
+            pull_line_chat_xml_output = pull_line_chat_xml.stdout.read().decode("ascii")
+            if pull_line_chat_xml_output[:23] == "/sdcard/window_dump.xml":
+                file_pulled = True
+            else:
+                file_pulled = False
+        adb_open_url_in_webview_command = r'''url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_line_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/KeepMemo.xml) ; adb shell input tap $url'''
         subprocess.Popen(adb_open_url_in_webview_command, shell=True)
         time_countdown = 45.0
         while time_countdown > 0:
@@ -329,6 +339,7 @@ def telegram(website, verification_text):
 
         if result == 5:
             subprocess.Popen("adb shell input keyevent 4", shell=True)
+            time.sleep(3)
 
         if result == 1 or result == 2 or result == 4 or result == 5:
             time_counter = 45.0 - time_countdown
@@ -418,7 +429,17 @@ def facebookmessenger(website, verification_text):
         log_file.write("Testing " + website.rstrip("\n") + " on Facebook Messenger (" + str(x + 1) + "/3)\n")
         os.system("adb logcat -c")
         time.sleep(5)
-        adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OwnProfile.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_messenger_url + '''"[^>]*content-desc=""[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OwnProfile.xml) ; adb shell input tap $url'''
+        file_pulled = False
+        while not file_pulled:
+            pull_messenger_chat_xml = subprocess.Popen(
+                r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/OwnProfile.xml''', shell=True,
+                stdout=subprocess.PIPE)
+            pull_messenger_chat_xml_output = pull_messenger_chat_xml.stdout.read().decode("ascii")
+            if pull_messenger_chat_xml_output[:23] == "/sdcard/window_dump.xml":
+                file_pulled = True
+            else:
+                file_pulled = False
+        adb_open_url_in_webview_command = r'''url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_messenger_url + '''"[^>]*content-desc=""[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/OwnProfile.xml) ; adb shell input tap $url'''
         subprocess.Popen(adb_open_url_in_webview_command, shell=True)
         time_countdown = 45.0
         while time_countdown > 0:
