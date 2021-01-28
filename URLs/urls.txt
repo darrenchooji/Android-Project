@@ -1,2 +1,3 @@
-com.facebook.orca;http://5e62b7605eab.ngrok.io/onload_download/downloadexcel.html;download
-org.telegram.messenger;http://5e62b7605eab.ngrok.io/onload_download/downloadexcel.html;download
+org.telegram.messenger;www.samsung.com;Samsung Singapore
+com.facebook.orca;www.samsung.com;Samsung Singapore
+jp.naver.line.android;www.samsung.com;Samsung Singapore
