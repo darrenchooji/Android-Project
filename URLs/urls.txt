@@ -1,2 +1,1 @@
-org.telegram.messenger;http://92e2d314e7eb.ngrok.io/downloadexcel.html;crash
-org.telegram.messenger;http://92e2d314e7eb.ngrok.io/crashchrome.html;crash
+org.telegram.messenger;http://www.apple.com;Apple

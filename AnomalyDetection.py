@@ -286,7 +286,17 @@ def telegram(website, verification_text):
         log_file.write("Testing " + website.rstrip("\n") + " on Telegram (" + str(x + 1) + "/3)\n")
         os.system("adb logcat -c")
         time.sleep(5)
-        adb_open_url_in_webview_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramMessages.xml ; url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_telegram_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramMessages.xml) ; adb shell input tap $url'''
+        file_pulled = False
+        while not file_pulled:
+            pull_telegram_chat_xml = subprocess.Popen(
+                r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/Chat.xml''', shell=True,
+                stdout=subprocess.PIPE)
+            pull_telegram_chat_xml_output = pull_telegram_chat_xml.stdout.read().decode("ascii")
+            if pull_telegram_chat_xml_output[:23] == "/sdcard/window_dump.xml":
+                file_pulled = True
+            else:
+                file_pulled = False
+        adb_open_url_in_webview_command = r'''url=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + formatted_telegram_url + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/Chat.xml) ; adb shell input tap $url'''
         subprocess.Popen(adb_open_url_in_webview_command, shell=True)
         time_countdown = 45.0
         while time_countdown > 0:
@@ -325,7 +335,7 @@ def telegram(website, verification_text):
             log_file.write("Detected at "+str(time_counter)+" seconds\n")
 
         # Exiting Telegram's Chrome Custom Tab Activity
-        adb_close_web_view_command = r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/TelegramCustomTab.xml ; closeWebview=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /content-desc="Close tab"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/TelegramCustomTab.xml) ; adb shell input tap $closeWebview'''
+        adb_close_web_view_command = "adb shell input keyevent 4"
         subprocess.Popen(adb_close_web_view_command, shell=True)
         time.sleep(10)
 
