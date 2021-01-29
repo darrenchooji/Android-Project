@@ -74,8 +74,6 @@ def android_webview_anomaly_checking(verification_text):
             # Check if webpage contains the verification text
             subprocess.Popen(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/Webview.xml''',
                              shell=True)
-            verification_text = verification_text.replace("|", "\|")
-            verification_text = verification_text.replace("/", "\/")
             verification_text = verification_text.rstrip("\n")
             adb_verify_webview_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + verification_text + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/Webview.xml) ; echo $coords'''
             verify = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
@@ -117,8 +115,6 @@ def chrome_custom_tab_anomaly_checking(verification_text):
         elif download == 2:
             return 5
         else:
-            verification_text = verification_text.replace("|", "\|")
-            verification_text = verification_text.replace("/", "\/")
             verification_text = verification_text.rstrip("\n")
             adb_verify_custom_tab_activity_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + verification_text + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/ChromeCustomTab.xml) ; echo $coords'''
             verify = subprocess.Popen(adb_verify_custom_tab_activity_crash_command, shell=True, stdout=subprocess.PIPE)
