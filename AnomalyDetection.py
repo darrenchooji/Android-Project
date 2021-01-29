@@ -7,6 +7,7 @@ from pathlib import Path
 
 home_path = str(Path.home())
 serial_number = random.randint(0000, 9999)
+# Log file containing the results of the anomaly checking
 log_file = open(home_path + "/Desktop/AndroidAnomalyDetection/anomalydetectionlog" + str(serial_number) + ".txt", "w")
 
 
@@ -51,9 +52,11 @@ def android_webview_crash_checking():
     verify_webview_crash = subprocess.Popen(adb_verify_webview_crash_command, shell=True, stdout=subprocess.PIPE)
     verify_webview_crash_output = verify_webview_crash.stdout.read().decode("ascii")
     if verify_webview_crash_output != '':
+        # Webpage crashed
         log_file.write("Anomaly detected! Webpage crashed!\n")
         return True
     else:
+        # Webpage did not crash
         return False
 
 
@@ -80,12 +83,15 @@ def android_webview_anomaly_checking(verification_text):
             verify_output = verify.stdout.read().decode("ascii")
             verify_output = verify_output.rstrip("\n")
             if verify_output == '':
+                # Webpage does not contain verification text
                 return 3
             else:
+                # Webpage contains the verification text
                 log_file.write("No anomaly detected\n")
                 return 4
 
 
+# Check if Chrome Custom Tab crashed
 def chrome_custom_tab_crash_checking():
     subprocess.run(r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/ChromeCustomTab.xml''',
                    shell=True)
@@ -94,13 +100,15 @@ def chrome_custom_tab_crash_checking():
     verify_webview_crash_output = verify_webview_crash.stdout.read().decode("ascii")
     verify_webview_crash_output = verify_webview_crash_output.rstrip("\n")
     if verify_webview_crash_output != '':
+        # Chrome Custom Tab crashed
         log_file.write("Anomaly detected! Webpage crashed!\n")
         return True
     else:
+        # Chrome Custom Tab did not crash
         return False
 
 
-# Checking for anomalies in Chrome Custom Tab Activity
+# Checking for anomalies in Chrome Custom Tab
 def chrome_custom_tab_anomaly_checking(verification_text):
     crash = chrome_custom_tab_crash_checking()
     if crash:
@@ -109,20 +117,22 @@ def chrome_custom_tab_anomaly_checking(verification_text):
         # Call function to check if webpage has downloaded any file/folder
         download = webpage_downloaded_file_checking()
 
-        # Check if webpage contains the verification text
         if download == 1 or download == 3:
             return 2
         elif download == 2:
             return 5
         else:
+            # Checking if webpage contains the verification text
             verification_text = verification_text.rstrip("\n")
             adb_verify_custom_tab_activity_crash_command = r'''coords=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="''' + verification_text + '''"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/ChromeCustomTab.xml) ; echo $coords'''
             verify = subprocess.Popen(adb_verify_custom_tab_activity_crash_command, shell=True, stdout=subprocess.PIPE)
             verify_output = verify.stdout.read().decode("ascii")
             verify_output = verify_output.rstrip("\n")
             if verify_output == '':
+                # Webpage does not contain the verification text
                 return 3
             else:
+                # Webpage contains the verification text
                 log_file.write("No anomaly detected\n")
                 return 4
 
@@ -180,7 +190,7 @@ def line(website, verification_text):
     time.sleep(5)
     print("LINE's Keep Memo Opened")
 
-    # Sending URL to LINE's Keep Memo and opening that particular URL using LINE's WebView
+    # Sending URL to LINE's Keep Memo
     os.putenv("url", website)
     os.system("adb shell input text $url")
     time.sleep(5)
@@ -189,6 +199,7 @@ def line(website, verification_text):
     website = website.rstrip("\n")
     formatted_line_url = website.replace("/", r"\/")
 
+    # Opening URL and performing the anomaly checking
     for x in range(3):
         log_file.write("Testing " + website.rstrip("\n") + " on Line (" + str(x + 1) + "/3)\n")
         os.system("adb logcat -c")
@@ -279,7 +290,7 @@ def telegram(website, verification_text):
     print("Opened Telegram's Saved Messages")
     time.sleep(3)
 
-    # Sending URL to Telegram's Saved Messages and opening that particular URL using Telegram's Chrome Custom Tab Activity
+    # Sending URL to Telegram's Saved Messages
     os.putenv("url", website)
     os.system("adb shell input text $url")
     time.sleep(3)
@@ -288,6 +299,7 @@ def telegram(website, verification_text):
     website = website.rstrip("\n")
     formatted_telegram_url = website.replace("/", r"\/")
 
+    # Opening URL and performing the anomaly checking
     for x in range(3):
         log_file.write("Testing " + website.rstrip("\n") + " on Telegram (" + str(x + 1) + "/3)\n")
         os.system("adb logcat -c")
@@ -408,7 +420,7 @@ def facebookmessenger(website, verification_text):
     os.system("adb shell input keyevent 61 ; adb shell input keyevent 66")
     time.sleep(5)
 
-    # Sending URL to own profile and opening that particular URL using Facebook Messenger's Webview
+    # Sending URL to own profile
     subprocess.Popen(
         r'''adb pull $(adb shell uiautomator dump | grep -oP '[^ ]+.xml') /tmp/SelfMessage.xml ; msg=$(perl -ne 'printf "%d %d\n", ($1+$3)/2, ($2+$4)/2 if /text="Aa"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/' /tmp/SelfMessage.xml) ; adb shell input tap $msg''',
         shell=True)
@@ -421,6 +433,7 @@ def facebookmessenger(website, verification_text):
     website = website.rstrip("\n")
     formatted_messenger_url = website.replace("/", "\/")
 
+    # Opening URL and performing the anomaly checking
     for x in range(3):
         log_file.write("Testing " + website.rstrip("\n") + " on Facebook Messenger (" + str(x + 1) + "/3)\n")
         os.system("adb logcat -c")
@@ -470,7 +483,7 @@ def facebookmessenger(website, verification_text):
         time.sleep(10)
 
 
-# Reading file which contains the desired IM's package name and URL
+# Reading file which contains the desired IM's package name, URL, and verification text
 url_file = open(home_path + "/Desktop/AndroidAnomalyDetection/URLs/urls.txt", "r")
 log_file.write(
     "======================================== ANOMALY DETECTION ========================================\n\n")
