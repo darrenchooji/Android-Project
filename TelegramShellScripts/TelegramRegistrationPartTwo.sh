@@ -1,7 +1,7 @@
-adb shell input text $telegramOtp
+adb -s $device_id shell input text $telegramOtp
 sleep 5
-adb shell input keyevent 61 ; adb shell input keyevent 61 ; adb shell input keyevent 160
+adb -s $device_id shell input keyevent 61 ; adb -s $device_id shell input keyevent 61 ; adb -s $device_id shell input keyevent 160
 sleep 3
-adb shell input keyevent 61
+adb -s $device_id shell input keyevent 61
 sleep 3
-adb shell input keyevent 66
+adb -s $device_id shell input keyevent 66
